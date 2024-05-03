@@ -1,4 +1,0 @@
-add_sports
-analyze_data
-retrieve_data_wepari
-utils

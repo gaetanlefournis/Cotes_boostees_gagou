@@ -1,1 +1,3 @@
-config/*
+config/
+boosted_odds.egg-info/
+gagou_env/
