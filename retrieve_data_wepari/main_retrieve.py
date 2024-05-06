@@ -35,3 +35,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     main(args.config_path, args.env_path)
+
+    # python3 retrieve_data_wepari/main_retrieve.py --config_path config/config_gagou.yaml --env_path config/.env.gagou

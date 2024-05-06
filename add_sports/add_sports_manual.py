@@ -41,6 +41,8 @@ class AddSportsManual():
         SELECT_QUERY = f"SELECT * FROM {self.db_table} WHERE sport IS NULL OR sport = ''"
         df = pd.read_sql(SELECT_QUERY, self.engine)
         condition = True
+        if df.empty:
+            raise ValueError("No need to add sports, every line if already filled with a sport.")
         while condition:
             for index, row in df.iterrows():
                 title = row['title']

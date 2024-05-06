@@ -1,18 +1,18 @@
 import argparse
 
-from add_sports.add_sport_automatic import AddSportsAutomatic
-from add_sports.add_sport_manual import AddSportsManual
+from add_sports.add_sports_automatic import AddSportsAutomatic
+from add_sports.add_sports_manual import AddSportsManual
 from utils.tools import load_config
 
 
 def main(config_path, env_path, word : str = "", sport : str = ""):
     config = load_config(config_path, env_path)
-    if config["add_sport"] == "automatic":
-        add_sport = AddSportsAutomatic(**config)
-        add_sport(word, sport)
-    elif config["add_sport"] == "manual":
+    if config["add_sport"] == "manual" or (word == "" and sport == ""):
         add_sport = AddSportsManual(**config)
         add_sport()
+    elif config["add_sport"] == "automatic":
+        add_sport = AddSportsAutomatic(**config)
+        add_sport(word, sport)
     else :
         raise ValueError("The way of adding sports is not recognized. Please check the config file.")
 
@@ -46,3 +46,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     main(args.config_path, args.env_path, args.word, args.sport)
+
+    # python3 add_sports/main_add_sports.py --config_path config_gagou.yaml --env_path .env.gagou --sport "Football" --word "football"

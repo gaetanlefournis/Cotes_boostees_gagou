@@ -25,6 +25,7 @@ DICO_SPORTS = {
     'h': 'Handball',
     'hg': 'Hockey sur glace',
     'jo': 'JO',
+    'ju': 'Judo',
     'm': 'MMA',
     'mo': 'Moto',
     'n': 'Natation',
@@ -35,6 +36,7 @@ DICO_SPORTS = {
     'sa': 'Ski alpin',
     'sf': 'Ski de fond',
     'sn': 'Snooker',
+    'tt': 'Tennis de table',
     'v': 'Volley-ball',
     'wp': 'Water-polo'
 }
