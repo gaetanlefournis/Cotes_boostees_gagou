@@ -1,4 +1,5 @@
 config/
 boosted_odds.egg-info/
 gagou_env/
-*/__pycache__
+results/
+**__pycache**

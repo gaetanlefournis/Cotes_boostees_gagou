@@ -33,3 +33,11 @@ def load_config(yaml_path: str, env_var_path: str = None):
     config = substitute_placeholders(config, env)
 
     return config
+
+def save_fig(fig, path: str):
+    """Save a figure to a file, if the path doesn't exist, create it"""
+    if not os.path.exists(os.path.dirname(path)):
+        os.makedirs(os.path.dirname(path))
+    fig.savefig(path)
+
+    

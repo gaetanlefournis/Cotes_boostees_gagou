@@ -7,9 +7,10 @@ from utils.tools import load_config
 
 def main(config_path, env_path):
     config = load_config(config_path, env_path)
-    analyze = AnalyzeDataDB1(amount_max=10, **config)
+    analyze = AnalyzeDataDB1(amount_max=10, metal="silver", **config)
     dico_result = analyze.analyze_results(LIST_SPORTS)
     print(dico_result)
+    analyze.plot_results()
 
 if __name__ == "__main__":
 
