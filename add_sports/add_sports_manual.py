@@ -39,11 +39,11 @@ class AddSportsManual():
     def add_sports(self):
         """Add sports to the database thanks to a word we give, that corresponds to a sport"""
         SELECT_QUERY = f"SELECT * FROM {self.db_table} WHERE sport IS NULL OR sport = ''"
-        df = pd.read_sql(SELECT_QUERY, self.engine)
         condition = True
-        if df.empty:
-            raise ValueError("No need to add sports, every line if already filled with a sport.")
         while condition:
+            df = pd.read_sql(SELECT_QUERY, self.engine)
+            if df.empty:
+                raise ValueError("No need to add sports, every line if already filled with a sport.")
             for index, row in df.iterrows():
                 title = row['title']
                 sub_title = row['sub_title']

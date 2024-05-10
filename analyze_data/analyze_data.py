@@ -1,4 +1,6 @@
 import argparse
+import os
+import shutil
 from typing import Dict
 
 import matplotlib.pyplot as plt
@@ -154,6 +156,13 @@ class AnalyzeDataDB1():
             plt.ylabel("Amount of money won")
             save_fig(fig, f"/home/gagou/Documents/Projet/Cotes_boostees_gagou/results/{self.db_table}/{self.metal}/{sport}_{small_dico['threshold']}.png")
             plt.close()
+
+    def clear_folder(self):
+        """ Clear the folder containing the plots before saving the new ones if the folder already exists"""
+        if f"/home/gagou/Documents/Projet/Cotes_boostees_gagou/results/{self.db_table}/{self.metal}/" in os.listdir("/home/gagou/Documents/Projet/Cotes_boostees_gagou/results/"):
+            shutil.rmtree(f"/home/gagou/Documents/Projet/Cotes_boostees_gagou/results/{self.db_table}/{self.metal}/")
+        else:
+            os.makedirs(f"/home/gagou/Documents/Projet/Cotes_boostees_gagou/results/{self.db_table}/{self.metal}/")
                
         
                 

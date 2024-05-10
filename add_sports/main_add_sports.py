@@ -47,4 +47,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     main(args.config_path, args.env_path, args.word, args.sport)
 
-    # python3 add_sports/main_add_sports.py --config_path config_gagou.yaml --env_path .env.gagou --sport "Football" --word "football"
+    # python3 add_sports/main_add_sports.py --config_path config/config_gagou.yaml --env_path config/.env.gagou --sport "Football" --word "football"
