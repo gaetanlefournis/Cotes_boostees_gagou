@@ -34,7 +34,7 @@ class AnalyzeDataDB1():
         self.metal = metal
         self.data = None
         self.formatted_dico_amount = None
-        self.MIN_THRESHOLD = 2.0
+        self.MIN_THRESHOLD = 1.8
         self.MAX_THRESHOLD = 6.0
         self.INCREMENT_THRESHOLD = 0.1
         if self.metal == "both":
@@ -43,11 +43,15 @@ class AnalyzeDataDB1():
             self.SIZE_TABLE = 10
         else:
             self.SIZE_TABLE = 50
-        self.MIN_AMOUNT_WON = 20
+        self.MIN_AMOUNT_WON = 50
         self.BASE_BET_AMOUNT = 10
         self.AMOUNT_MAX = amount_max
         self.COEFFICIENT1 = 200
         self.COEFFICIENT2 = 0.1
+        self.MIN_PERCENTAGE_CHANGE = 0.0
+        self.MAX_PERCENTAGE_CHANGE = 0.25
+        self.INCREMENT_PERCENTAGE_CHANGE = 0.01
+        self.LIST_SPORTS = LIST_SPORTS
         self._instantiate()
 
     def _instantiate(self):
@@ -56,7 +60,7 @@ class AnalyzeDataDB1():
         )
         self.data = pd.read_sql(f'SELECT * FROM {self.db_table}', self.engine)
 
-    def analyze_results(self, list_sport: list = LIST_SPORTS) -> Dict:
+    def analyze_results(self) -> Dict:
         """
         Analyze the results of the bets and save the plots.
 
@@ -71,15 +75,13 @@ class AnalyzeDataDB1():
         # Validate input parameters
         if not isinstance(self.data, pd.DataFrame):
             raise ValueError("Input 'df' must be a DataFrame")
-        if not isinstance(list_sport, list) or len(list_sport) == 0:
-            raise ValueError("Input 'list_sport' must be a non empty list of sports")
         if self.metal not in ["gold", "silver", "both"]:
             raise ValueError("The golden parameter must be 'gold', 'silver' or 'both'")
 
         dico_amount = {}
-        for sport in list_sport:
+        for sport in self.LIST_SPORTS:
             
-            dico_amount[sport] = [None, np.NINF, 0]
+            dico_amount[sport] = [None, None, np.NINF, 0]
             df_sport = self.data[self.data['sport'] == sport]
 
             if self.metal == "both":
@@ -92,24 +94,26 @@ class AnalyzeDataDB1():
             for threshold in np.arange(self.MIN_THRESHOLD, self.MAX_THRESHOLD, self.INCREMENT_THRESHOLD):
                 threshold = np.round(threshold, 2)
                 df_threshold = df_sport[df_sport['odd'].astype(float) <= threshold]
-
-                if df_threshold.shape[0] >= self.SIZE_TABLE:
-                    list_amount = []
-                    total_amount = 0
-                    for _, row in df_threshold.iterrows():
-                        if str(row['result']).lower() == 'gagné':
-                            amount = self.BASE_BET_AMOUNT * (float(row['odd']) - 1)
-                        elif str(row['result']).lower() == 'perdu': 
-                            amount = -self.BASE_BET_AMOUNT
-                        else:
-                            amount = 0
-                        total_amount += amount
-                        list_amount.append(total_amount)
-                
-                    if list_amount[-1] >= dico_amount[sport][1]:
-                        dico_amount[sport] = [threshold, list_amount[-1], len(list_amount)]
+                for percentage in np.arange(self.MIN_PERCENTAGE_CHANGE, self.MAX_PERCENTAGE_CHANGE, self.INCREMENT_PERCENTAGE_CHANGE):
+                    percentage = np.round(percentage, 2)
+                    df_threshold_percentage = df_threshold[(df_threshold['odd'] - df_threshold['old_odd'])/df_threshold['old_odd'] >= percentage]
+                    if df_threshold_percentage.shape[0] >= self.SIZE_TABLE:
+                        list_amount = []
+                        total_amount = 0
+                        for _, row in df_threshold_percentage.iterrows():
+                            if str(row['result']).lower() == 'gagné':
+                                amount = self.BASE_BET_AMOUNT * (float(row['odd']) - 1)
+                            elif str(row['result']).lower() == 'perdu': 
+                                amount = -self.BASE_BET_AMOUNT
+                            else:
+                                amount = 0
+                            total_amount += amount
+                            list_amount.append(total_amount)
+                    
+                        if list_amount[-1] >= dico_amount[sport][2]:
+                            dico_amount[sport] = [threshold, percentage, list_amount[-1], len(list_amount)]
         
-        self.formatted_dico_amount = {sport: {'threshold': values[0], 'won': np.round(values[1], 1), 'amount': self._calculate_amount(values[1], values[2])} for sport, values in dico_amount.items() if values[0] is not None and values[1] >= self.MIN_AMOUNT_WON}
+        self.formatted_dico_amount = {sport: {'threshold': values[0], 'percentage': values[1], 'won': np.round(values[2], 1), 'amount': self._calculate_amount(values[2], values[3])} for sport, values in dico_amount.items() if values[0] is not None and values[1] is not None and values[2] >= self.MIN_AMOUNT_WON}
 
         return self.formatted_dico_amount
     
@@ -134,13 +138,18 @@ class AnalyzeDataDB1():
             total_amount = 0
             fig = plt.figure(figsize=(15, 10))
             df_sport = self.data[self.data['sport'] == sport]
+
             if self.metal == "both":
                 df_sport = df_sport[df_sport['golden'] != "special"]
             else:
                 df_sport = df_sport[df_sport['golden'] == self.metal]
+
             df_sport = df_sport.dropna(subset=['result'])
+
             df_threshold = df_sport[df_sport['odd'].astype(float) <= small_dico['threshold']]
-            for _, row in df_threshold.iterrows():
+            df_percentage = df_threshold[(df_threshold['odd'].astype(float) - df_threshold['old_odd'].astype(float))/df_threshold['old_odd'].astype(float) >= small_dico['percentage']]
+            
+            for _, row in df_percentage.iterrows():
                 if str(row['result']).lower() == 'gagné':
                     amount = self.BASE_BET_AMOUNT * (float(row['odd']) - 1)
                 elif str(row['result']).lower() == 'perdu': 
@@ -151,7 +160,7 @@ class AnalyzeDataDB1():
                 list_amount.append(total_amount)
 
             plt.plot(list_amount)
-            plt.title(f"Evolution of the amount of money won for {sport}")
+            plt.title(f"Evolution of the amount of money won for {sport}, threshold: {small_dico['threshold']}, percentage: {small_dico['percentage']}, golden: {self.metal}")
             plt.xlabel("Number of bets")
             plt.ylabel("Amount of money won")
             save_fig(fig, f"/home/gagou/Documents/Projet/Cotes_boostees_gagou/results/{self.db_table}/{self.metal}/{sport}_{small_dico['threshold']}.png")
@@ -159,12 +168,14 @@ class AnalyzeDataDB1():
 
     def clear_folder(self):
         """ Clear the folder containing the plots before saving the new ones if the folder already exists"""
-        if f"/home/gagou/Documents/Projet/Cotes_boostees_gagou/results/{self.db_table}/{self.metal}/" in os.listdir("/home/gagou/Documents/Projet/Cotes_boostees_gagou/results/"):
+        if os.path.exists(f"/home/gagou/Documents/Projet/Cotes_boostees_gagou/results/{self.db_table}/{self.metal}/"):
             shutil.rmtree(f"/home/gagou/Documents/Projet/Cotes_boostees_gagou/results/{self.db_table}/{self.metal}/")
         else:
             os.makedirs(f"/home/gagou/Documents/Projet/Cotes_boostees_gagou/results/{self.db_table}/{self.metal}/")
                
-        
+    def close_engine(self):
+        """ Close the engine """
+        self.engine.dispose()
                 
 
 

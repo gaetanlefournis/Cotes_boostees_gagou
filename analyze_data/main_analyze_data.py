@@ -1,17 +1,20 @@
 import argparse
 
 from analyze_data import AnalyzeDataDB1
-from utils.constants import LIST_SPORTS
 from utils.tools import load_config
 
 
 def main(config_path, env_path):
     config = load_config(config_path, env_path)
-    analyze = AnalyzeDataDB1(amount_max=10, **config)
-    dico_result = analyze.analyze_results(LIST_SPORTS)
-    print(dico_result)
+    analyze = AnalyzeDataDB1(amount_max=10, **config["DB"])
+    dico_result = analyze.analyze_results()
+    for sport, dico in dico_result.items():
+        print(f"\nSport: {sport}")
+        for key, value in dico.items():
+            print(f"{key}: {value}")
     analyze.clear_folder()
     analyze.plot_results()
+    analyze.close_engine()
 
 if __name__ == "__main__":
 

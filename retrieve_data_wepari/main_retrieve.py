@@ -8,11 +8,11 @@ from utils.tools import load_config
 
 def main(config_path, env_path):
     config = load_config(config_path, env_path)
-    if config["betting_website"] == "WINAMAX":
-        retriever_wepari = RetrieverWinamax(**config)
+    if config["DB"]["table"] == "winamax":
+        retriever_wepari = RetrieverWinamax(**config["DB"])
         retriever_wepari()
-    elif config["betting_website"] == "PSEL":
-        retriever_wepari = RetrieverPSEL(**config)
+    elif config["DB"]["table"] == "PSEL":
+        retriever_wepari = RetrieverPSEL(**config["DB"])
         retriever_wepari()
     else :
         raise ValueError("The betting website is not recognized. Please check the config file.")

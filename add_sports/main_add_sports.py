@@ -7,11 +7,11 @@ from utils.tools import load_config
 
 def main(config_path, env_path, word : str = "", sport : str = ""):
     config = load_config(config_path, env_path)
-    if config["add_sport"] == "manual" or (word == "" and sport == ""):
-        add_sport = AddSportsManual(**config)
+    if config["DB"]["add_sport"] == "manual" or (word == "" and sport == ""):
+        add_sport = AddSportsManual(**config["DB"])
         add_sport()
-    elif config["add_sport"] == "automatic":
-        add_sport = AddSportsAutomatic(**config)
+    elif config["DB"]["add_sport"] == "automatic":
+        add_sport = AddSportsAutomatic(**config["DB"])
         add_sport(word, sport)
     else :
         raise ValueError("The way of adding sports is not recognized. Please check the config file.")

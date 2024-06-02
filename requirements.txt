@@ -6,3 +6,5 @@ sqlalchemy
 mysql-connector-python
 python-dotenv
 pyyaml
+python-telegram-bot
+psutil

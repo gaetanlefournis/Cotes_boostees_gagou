@@ -40,7 +40,6 @@ class RetrieverWinamax(AbstractRetriever):
         self.driver = None
         self.engine = None
         self.session = None
-        self._instantiate()
 
     def _instantiate(self) -> None:
         """Instantiate the driver and the database engine"""
@@ -163,9 +162,14 @@ class RetrieverWinamax(AbstractRetriever):
         self.session.close()
 
     def __call__(self, *args: Any, **kwds: Any):
-        self.load_page()
-        self.retrieve_all_data()
-        self.close()
+        try:
+            self._instantiate()
+            self.load_page()
+            self.retrieve_all_data()
+        except Exception as e:
+            print(f"An error occurred: {e}")
+        finally:
+            self.close()
 
 
 
