@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
 
-from utils.constants import DICO_SPORTS, LIST_SPORTS
+from utils.constants import DICO_SPORTS
 
 
 # Description: Add sports to the database
@@ -43,8 +43,9 @@ class AddSportsManual():
         while condition:
             df = pd.read_sql(SELECT_QUERY, self.engine)
             if df.empty:
-                raise ValueError("No need to add sports, every line if already filled with a sport.")
-            for index, row in df.iterrows():
+                print("No more lines to fill with a sport.")
+                break
+            for _, row in df.iterrows():
                 title = row['title']
                 sub_title = row['sub_title']
                 print(f'\n\n\n\ntitle : {title}\nsub_title : {sub_title}\n')

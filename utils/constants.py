@@ -48,19 +48,19 @@ CONDITIONS_ON_SPORTS = {
         {
         "silver" : 
             {
-            "Football": [2.8, 21], 
-            "Basketball": [2.5, 12], 
-            "Tennis":[3.7, 22], 
+            "Football": [3.3, 17], 
+            "Basketball": [4.9, 13], 
+            "Tennis":[3.7, 9], 
             "Baseball":[2.5, 9], 
             "Biathlon":[10, 9], 
             "Football américain":[4.4, 19],
-            "Formule 1":[4.4, 11],
+            "Formule 1":[4.7, 16],
             "Handball":[2.7, 7],
             "Hockey sur glace":[2.7, 14],
-            "MMA":[2.5, 8],
+            "MMA":[2.5, 10],
             "Rugby à XV":[5.4, 21],
             "Rugby à XIII":[2.6, 12],
-            "Volley-ball":[3.5, 11],
+            "Volley-ball":[3.5, 13],
             },
         "gold" : 
             {
@@ -78,7 +78,8 @@ CONDITIONS_ON_SPORTS = {
             {
             "Football": [2.6, 19], 
             "Basketball": [2.9, 20], 
-            "Tennis":[3.1, 16],
+            "Tennis":[4.1, 16],
+            "Rugby à XIII":[3.4, 17]
             },
         "gold" : 
             {
