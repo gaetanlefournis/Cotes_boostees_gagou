@@ -97,6 +97,7 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
                 except:
                     pass
 
+            print(self._sport_dict)
             # For each sport key keep only elements in the list that are unique amongst all the lists of the dict
             new_dict = {}
             for key, value in _sport_dict.items():
@@ -106,7 +107,10 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
                         if len(value) == 1:
                             break
                 
-                new_dict[value[0]] = key
+                if not value:
+                    new_dict["other"] = key
+                else:
+                    new_dict[value[0]] = key
             self._sport_dict = new_dict
                 
         except:
