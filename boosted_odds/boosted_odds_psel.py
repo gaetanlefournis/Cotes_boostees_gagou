@@ -155,7 +155,7 @@ class BoostedOddsPSEL(AbstractBoostedOdds):
         heure = datetime.datetime.strptime(heure.split()[-1], "%Hh%M")
 
         def extract_number_before_arrow(text):
-            pattern = r'(\d+(.|,)\d+)\s*(->|→)'
+            pattern = r'(\d+(?:[.,]\d+)?)\s*(?=->|→)'
             match = re.search(pattern, text)
             return  match.group(1) if match else None
 
@@ -195,20 +195,20 @@ class BoostedOddsPSEL(AbstractBoostedOdds):
                 EC.presence_of_all_elements_located(
                     (
                         By.XPATH,
-                        "//div[@class='psel-sport-events psel-webapp-wrapper']",
+                        "//div[@class='psel-sport-events']",
                     )
                 )
             )
             time.sleep(1)
             wrappers = self.driver.find_elements(
                 By.XPATH,
-                "//div[@class='psel-sport-events psel-webapp-wrapper']",
+                "//div[@class='psel-sport-events']",
             )
+            
             boosted_odds = wrappers[0].find_elements(
                 By.XPATH,
                 "./*",
             )[1:]
-            
             
         except Exception as _:
             print("Error while retrieving the boosted odds")
@@ -216,9 +216,16 @@ class BoostedOddsPSEL(AbstractBoostedOdds):
 
         list_bet = []
         for boosted_odd in boosted_odds:
-            # Get the infos of the boosted odd
-            bet = self._get_infos_from_boosted_odd(boosted_odd)
-            list_bet.append(bet)
+            if "Réessayez" in boosted_odd.text:
+                print("No boosted odds")
+                return []
+            try :
+                # Get the infos of the boosted odd
+                bet = self._get_infos_from_boosted_odd(boosted_odd)
+                list_bet.append(bet)
+            except Exception as e:
+                print(f"Error while getting the infos from the boosted odd : {e}")
+                continue
             
         return list_bet
 

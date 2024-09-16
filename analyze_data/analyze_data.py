@@ -51,6 +51,7 @@ class AnalyzeDataDB1():
         self.MIN_PERCENTAGE_CHANGE = 0.0
         self.MAX_PERCENTAGE_CHANGE = 0.25
         self.INCREMENT_PERCENTAGE_CHANGE = 0.01
+        self.MIN_RATIO = 1
         self.LIST_SPORTS = LIST_SPORTS
         self._instantiate()
 
@@ -81,7 +82,7 @@ class AnalyzeDataDB1():
         dico_amount = {}
         for sport in self.LIST_SPORTS:
             
-            dico_amount[sport] = [None, None, np.NINF, 0]
+            dico_amount[sport] = [None, None, np.NINF, 0, 0]
             df_sport = self.data[self.data['sport'] == sport]
 
             if self.metal == "both":
@@ -110,10 +111,11 @@ class AnalyzeDataDB1():
                             total_amount += amount
                             list_amount.append(total_amount)
                     
-                        if list_amount[-1] >= dico_amount[sport][2]:
-                            dico_amount[sport] = [threshold, percentage, list_amount[-1], len(list_amount)]
+                        if list_amount[-1] >= dico_amount[sport][2] and list_amount[-1]/df_threshold_percentage.shape[0] >= self.MIN_RATIO:
+                            dico_amount[sport] = [threshold, percentage, list_amount[-1], len(list_amount), np.round(list_amount[-1]/df_threshold_percentage.shape[0], 2)]
+
         
-        self.formatted_dico_amount = {sport: {'threshold': values[0], 'percentage': values[1], 'won': np.round(values[2], 1), 'amount': self._calculate_amount(values[2], values[3])} for sport, values in dico_amount.items() if values[0] is not None and values[1] is not None and values[2] >= self.MIN_AMOUNT_WON}
+        self.formatted_dico_amount = {sport: {'threshold': values[0], 'percentage': values[1], 'won': np.round(values[2], 1), 'amount': self._calculate_amount(values[2], values[3]), 'ratio': values[4]} for sport, values in dico_amount.items() if values[0] is not None and values[1] is not None and values[2] >= self.MIN_AMOUNT_WON}
 
         return self.formatted_dico_amount
     
