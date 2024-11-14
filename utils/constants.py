@@ -70,9 +70,9 @@ CONDITIONS_ON_SPORTS = {
             #"Biathlon":[10, 9], 
             "Football américain":[4.4, 19],
             "Formule 1":[4.4, 11],
-            "Handball":[2.7, 7],
+            #"Handball":[2.7, 7],
             "Hockey sur glace":[2.2, 12],
-            "MMA":[2.5, 8],
+            "MMA":[2.5, 10],
             "Rugby à XV":[5.4, 20],
             "Rugby à XIII":[2.6, 12],
             "Volley-ball":[3.5, 13],
@@ -98,7 +98,7 @@ CONDITIONS_ON_SPORTS = {
             },
         "gold" : 
             {
-            "Football": [2.6, 20],
+            "Football": [2.3, 19],
             "Tennis": [3.8, 0],
             }
         }
