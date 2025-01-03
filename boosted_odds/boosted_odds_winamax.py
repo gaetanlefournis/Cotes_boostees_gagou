@@ -21,6 +21,7 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
         headless=True,
         token_telegram=None,
         chat_id_telegram=None,
+        **kwargs,
     ) -> None:
         self.WEBSITE = 'WINAMAX'
         self.bet_history = bet_history

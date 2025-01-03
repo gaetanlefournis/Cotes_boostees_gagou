@@ -7,7 +7,7 @@ URL_BOOSTED_ODDS_WINAMAX = "https://www.winamax.fr/paris-sportifs/sports/100000"
 URL_BOOSTED_ODDS_PSEL = "https://www.enligne.parionssport.fdj.fr/cotes-boostees"
 
 # List of possible sports on Winamax
-LIST_SPORTS = ["Football", "Basketball", "Tennis", "Athlétisme", "Automobile", "Badminton", "Baseball", "Biathlon", "Boxe", "Cyclisme", "Football américain", "Football australien", "Formule 1", "Golf", "Handball", "Hockey sur glace", "JO", "Judo", "MMA", "Moto", "Natation", "Pétanque", "Rugby à XV", "Rugby à XIII", "Rugby à 7", "Ski alpin", "Ski de fond", "Snooker", "Tennis de table", "Volley-ball", "Water-polo"]
+LIST_SPORTS = ["Football", "Basketball", "Tennis", "Athlétisme", "Automobile", "Aviron", "Badminton", "Baseball", "Beach-volley", "Biathlon", "Boxe", "Canoé-kayak", "Cyclisme", "Escalade", "Escrime", "Equitation", "Football américain", "Football australien", "Formule 1", "Golf", "Haltérophilie", "Handball", "Hockey sur gazon", "Hockey sur glace", "JO", "Judo", "Lutte", "MMA", "Moto", "Natation", "Pentathlon moderne", "Pétanque", "Rugby à XV", "Rugby à XIII", "Rugby à 7", "Ski alpin", "Ski de fond", "Snooker", "Taekwondo", "Tennis de table", "Tir", "Tir à l arc", "Triathlon", "Voile", "Volley-ball", "Water-polo"]
 
 DICO_SPORTS = {
     'f': 'Football',
@@ -57,6 +57,20 @@ DICO_SPORTS = {
     'v': 'Volley-ball',
     'wp': 'Water-polo'
 }
+
+SPORTS_LOGO = {
+    "⚽": "Football",
+    "🏀": "Basketball",
+    "🏈": "Football américain",
+    "⚾": "Baseball",
+    "🎾": "Tennis",
+    "🏐": "Volley-ball",
+    "🏉": "Rugby à XV",
+    "🏒": "Hockey sur glace",
+    "🥊": "MMA",
+    "🤾": "Handball",
+}
+
 
 CONDITIONS_ON_SPORTS = {
     "winamax": 

@@ -1,18 +1,18 @@
 import argparse
 
-from add_sports.add_sports_automatic import AddSportsAutomatic
 from add_sports.add_sports_manual import AddSportsManual
+from add_sports.add_sports_telegram import AddSportsTelegram
 from utils.tools import load_config
 
 
-def main(config_path, env_path, word : str = "", sport : str = ""):
+def main(config_path, env_path):
     config = load_config(config_path, env_path)
-    if config["DB"]["add_sport"] == "manual" or (word == "" and sport == ""):
+    if config["DB"]["add_sport"] == "manual":
         add_sport = AddSportsManual(**config["DB"])
         add_sport()
-    elif config["DB"]["add_sport"] == "automatic":
-        add_sport = AddSportsAutomatic(**config["DB"])
-        add_sport(word, sport)
+    elif config["DB"]["add_sport"] == "telegram":
+        add_sport = AddSportsTelegram(**config["DB"], **config["BO"]["parameters"])
+        add_sport()
     else :
         raise ValueError("The way of adding sports is not recognized. Please check the config file.")
 
@@ -32,19 +32,7 @@ if __name__ == "__main__":
         help="Path to the environment file (default: .env.example)",
     )
 
-    parser.add_argument(
-        "--word",
-        default="",
-        help="Word to add",
-    )
-
-    parser.add_argument(
-        "--sport",
-        default="",
-        help="Sport to add",
-    )
-
     args = parser.parse_args()
-    main(args.config_path, args.env_path, args.word, args.sport)
+    main(args.config_path, args.env_path)
 
-    # python3 add_sports/main_add_sports.py --config_path config/config_gagou.yaml --env_path config/.env.gagou --sport "Football" --word "football"
+    # python3 add_sports/main_add_sports.py --config_path config/config_gagou.yaml --env_path config/.env.gagou

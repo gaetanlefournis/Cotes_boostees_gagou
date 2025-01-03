@@ -22,6 +22,7 @@ class BoostedOddsPSEL(AbstractBoostedOdds):
         headless=True,
         token_telegram=None,
         chat_id_telegram=None,
+        **kwargs,
     ) -> None:
         self.WEBSITE = 'PSEL'
         self.bet_history = bet_history
