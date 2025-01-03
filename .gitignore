@@ -3,3 +3,4 @@ boosted_odds.egg-info/
 gagou_env/
 results/
 **__pycache**
+logs_boosted_odds.log

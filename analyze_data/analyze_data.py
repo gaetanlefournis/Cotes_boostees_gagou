@@ -51,7 +51,7 @@ class AnalyzeDataDB1():
         self.MIN_PERCENTAGE_CHANGE = 0.0
         self.MAX_PERCENTAGE_CHANGE = 0.25
         self.INCREMENT_PERCENTAGE_CHANGE = 0.01
-        self.MIN_RATIO = 1
+        self.MIN_RATIO = 0.8
         self.LIST_SPORTS = LIST_SPORTS
         self._instantiate()
 
