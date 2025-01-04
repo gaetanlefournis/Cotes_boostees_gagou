@@ -16,7 +16,7 @@ class AddSportsManual():
         host: str,
         port: str,
         database: str,
-        table: str,
+        table_name: str,
         **kwargs,
     ):
         self.db_user = user
@@ -24,7 +24,7 @@ class AddSportsManual():
         self.db_host = host
         self.db_port = port
         self.db_database = database
-        self.db_table = table
+        self.db_table = table_name
         self.engine = None
         self._instantiate()
 

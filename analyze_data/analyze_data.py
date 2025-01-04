@@ -113,10 +113,9 @@ class AnalyzeDataDB1():
                     
                         if list_amount[-1] >= dico_amount[sport][2] and list_amount[-1]/df_threshold_percentage.shape[0] >= self.MIN_RATIO:
                             dico_amount[sport] = [threshold, percentage, list_amount[-1], len(list_amount), np.round(list_amount[-1]/df_threshold_percentage.shape[0], 2)]
-
         
         self.formatted_dico_amount = {sport: {'threshold': values[0], 'percentage': values[1], 'won': np.round(values[2], 1), 'amount': self._calculate_amount(values[2], values[3]), 'ratio': values[4]} for sport, values in dico_amount.items() if values[0] is not None and values[1] is not None and values[2] >= self.MIN_AMOUNT_WON}
-
+        
         return self.formatted_dico_amount
     
     def _calculate_amount(self, money_won : float, nb_bets : int) -> float:
@@ -167,6 +166,49 @@ class AnalyzeDataDB1():
             plt.ylabel("Amount of money won")
             save_fig(fig, f"/home/gagou/Documents/Projet/Cotes_boostees_gagou/results/{self.db_table}/{self.metal}/{sport}_{small_dico['threshold']}.png")
             plt.close()
+
+    def update_conditions(self):
+        """
+        Updates the conditions for a specified metal and site in the constants file.
+
+        :param metal: The metal category ('silver' or 'gold')
+        :param site: The betting site ('winamax' or 'PSEL')
+        :param sport: The sport to update
+        :param new_values: A list containing the new values [threshold, percentage]
+        """
+        # Read the current constants file
+        with open("/home/gagou/Documents/Projet/Cotes_boostees_gagou/utils/constants.py", 'r') as file:
+            content = file.readlines()
+
+        # Find the start of the CONDITIONS_ON_SPORTS dictionary
+        for index, line in enumerate(content):
+            if 'CONDITIONS_ON_SPORTS' in line:
+                # Look for the corresponding section
+                for i in range(index + 1, len(content)):
+                    if f'"{self.db_table}"' in content[i]:
+                        # Look for the corresponding metal and replace everything in it
+                        for j in range(i + 1, len(content)):
+                            if f'"{self.metal}"' in content[j]:
+                                # find the end of the dictionary
+                                for k in range(j + 1, len(content)):
+                                    if '}' in content[k]:
+                                        # Replace the content of the dictionary
+                                        new_content = []
+                                        for sport, values in self.formatted_dico_amount.items():
+                                            new_values = f'"{sport}": [{values["threshold"]}, {int(values["percentage"]*100)}],\n'
+                                            new_content.append(f'           {new_values}')
+                                        content[j + 2:k] = new_content
+                                        break
+                                break
+                        break
+                break
+
+        # Write the updated content back to the constants file
+        with open("/home/gagou/Documents/Projet/Cotes_boostees_gagou/utils/constants.py", 'w') as file:
+            file.writelines(content)
+
+        print(f"Update successfull in {self.db_table} for {self.metal}.")
+                
 
     def clear_folder(self):
         """ Clear the folder containing the plots before saving the new ones if the folder already exists"""

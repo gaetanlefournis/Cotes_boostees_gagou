@@ -6,15 +6,18 @@ from utils.tools import load_config
 
 def main(config_path, env_path):
     config = load_config(config_path, env_path)
-    analyze = AnalyzeDataDB1(amount_max=10, **config["DB"])
-    dico_result = analyze.analyze_results()
-    for sport, dico in dico_result.items():
-        print(f"\nSport: {sport}")
-        for key, value in dico.items():
-            print(f"{key}: {value}")
-    analyze.clear_folder()
-    analyze.plot_results()
-    analyze.close_engine()
+    for site in config["BO"]["websites"]:
+        for metal in config["BO"]["metals"]:
+            analyze = AnalyzeDataDB1(**config["DB"], metal=metal, table=site)
+            dico_result = analyze.analyze_results()
+            for sport, dico in dico_result.items():
+                print(f"\nSport: {sport}")
+                for key, value in dico.items():
+                    print(f"{key}: {value}")
+            analyze.clear_folder()
+            analyze.plot_results()
+            analyze.update_conditions()
+            analyze.close_engine()
 
 if __name__ == "__main__":
 

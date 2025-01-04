@@ -12,14 +12,14 @@ from utils.constants import SPORTS_LOGO
 
 class AddSportsTelegram:
 
-    def __init__(self, user: str, password: str, host: str, port: str, database: str, table: str,
+    def __init__(self, user: str, password: str, host: str, port: str, database: str, table_name: str,
                  token_telegram_add_sport: str, chat_id_telegram: str, **kwargs):
         self.db_user = user
         self.db_password = password
         self.db_host = host
         self.db_port = port
         self.db_database = database
-        self.db_table = table
+        self.db_table = table_name
         self.token = token_telegram_add_sport
         self.chat_id = chat_id_telegram
         self.engine = None

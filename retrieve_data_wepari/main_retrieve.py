@@ -8,14 +8,16 @@ from utils.tools import load_config
 
 def main(config_path, env_path):
     config = load_config(config_path, env_path)
-    if config["DB"]["table"] == "winamax":
-        retriever_wepari = RetrieverWinamax(**config["DB"])
-        retriever_wepari()
-    elif config["DB"]["table"] == "PSEL":
-        retriever_wepari = RetrieverPSEL(**config["DB"])
-        retriever_wepari()
-    else :
-        raise ValueError("The betting website is not recognized. Please check the config file.")
+    for site in config["BO"]["websites"]:
+        print(f"\nRetrieving data for {site} :")
+        if site == "winamax":
+            retriever_wepari = RetrieverWinamax(**config["DB"], table=site)
+            retriever_wepari()
+        elif site == "PSEL":
+            retriever_wepari = RetrieverPSEL(**config["DB"], table=site)
+            retriever_wepari()
+        else :
+            raise ValueError("The betting website is not recognized. Please check the config file.")
 
 
 if __name__ == "__main__":

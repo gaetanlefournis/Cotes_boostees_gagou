@@ -14,7 +14,7 @@ def main(config_path, env_path):
     bet_history = []
     for site in config["BO"]["websites"]:
         print(f"\nBoosted odds for {site} :")
-        if site == "WINAMAX":
+        if site == "winamax":
             boosted_odds = BoostedOddsWinamax(bet_history=bet_history, **config["BO"]["parameters"])
             bet_history = asyncio.run(boosted_odds.main())
         elif site == "PSEL":

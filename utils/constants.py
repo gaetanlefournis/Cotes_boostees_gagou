@@ -77,43 +77,39 @@ CONDITIONS_ON_SPORTS = {
         {
         "silver" : 
             {
-            #"Football": [2.8, 21], 
-            "Basketball": [2.5, 12], 
-            "Tennis":[3.7, 22], 
-            "Baseball":[2.5, 9], 
-            "Biathlon":[10, 14], 
-            "Football américain":[4.4, 19],
-            "Formule 1":[4.4, 12],
-            "Handball":[3.1, 16],
-            "Hockey sur glace":[2.7, 14],
-            "MMA":[2.5, 8],
-            "Rugby à XV":[5.4, 20],
-            "Rugby à XIII":[2.6, 12],
-            "Volley-ball":[3.5, 13],
+           "Basketball": [2.5, 12.0],
+           "Tennis": [3.7, 22.0],
+           "Baseball": [2.5, 9.0],
+           "Biathlon": [5.4, 14.000000000000002],
+           "Football américain": [4.4, 19.0],
+           "Formule 1": [4.4, 12.0],
+           "Handball": [3.1, 16.0],
+           "Hockey sur glace": [2.7, 14.000000000000002],
+           "MMA": [2.5, 8.0],
+           "Rugby à XV": [5.4, 20.0],
+           "Rugby à XIII": [2.6, 12.0],
+           "Volley-ball": [3.5, 13.0],
             },
         "gold" : 
             {
-            "Football": [4.9, 0],
-            "Basketball": [4.9, 0],
-            "Tennis":[3.2, 0],
-            "Rugby à XV":[10, 0],
-            "MMA":[10, 0],
-            "Handball":[10, 0],
+           "Football": [4.9, 24],
+           "Basketball": [4.9, 24],
+           "Tennis": [3.2, 24],
+           "Rugby à XV": [5.9, 24],
             }
         },
     "PSEL":
         {
         "silver" : 
             {
-            # "Football": [2.6, 19], 
-            # "Basketball": [2.9, 20], 
-            # "Tennis":[4.1, 16],
-            "Rugby à XIII":[3.4, 17]
+           "Basketball": [2.9, 20.0],
+           "Rugby à XIII": [3.4, 17.0],
             },
         "gold" : 
             {
-            "Football": [2.3, 19],
-            "Tennis": [3.8, 0],
+           "Football": [2.3, 19.0],
+           "Tennis": [3.8, 24.0],
+           "Rugby à XV": [5.9, 24.0],
             }
         }
     }
