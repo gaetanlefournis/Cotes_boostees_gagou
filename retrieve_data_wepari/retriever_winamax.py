@@ -31,7 +31,8 @@ class RetrieverWinamax(AbstractRetriever):
         self.headless = False
         self.user_agent = "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/532.0 (KHTML, like Gecko) Chrome/3.0.195.38 Safari/532.0"
         self.FIRST_ELEMENT = 1
-        self.LAST_ELEMENT = 500
+        self.LAST_ELEMENT_WITHOUT_GLOBAL = 500
+        self.LAST_ELEMENT = 5000
         self.url_wepari = URL_WEPARI_WINAMAX
         self.db_database = database
         self.db_user = user
@@ -91,9 +92,9 @@ class RetrieverWinamax(AbstractRetriever):
         # Retrieve the list of elements on which we will loop
         list_elements = main_element.find_elements(By.TAG_NAME, "tr")
         if self.global_retrieve == False:
-            list_elements = list_elements[self.FIRST_ELEMENT:self.LAST_ELEMENT]
+            list_elements = list_elements[self.FIRST_ELEMENT:self.LAST_ELEMENT_WITHOUT_GLOBAL]
         else : 
-            list_elements = list_elements[self.FIRST_ELEMENT:]
+            list_elements = list_elements[self.FIRST_ELEMENT:self.LAST_ELEMENT]
         list_elements.reverse()
 
         data_table = []

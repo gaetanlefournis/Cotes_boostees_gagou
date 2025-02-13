@@ -12,6 +12,7 @@ from utils.tools import load_config
 def main(config_path, env_path):
     config = load_config(config_path, env_path)
     bet_history = []
+    print(f"Starting time: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
     for site in config["BO"]["websites"]:
         print(f"\nBoosted odds for {site} :")
         if site == "winamax":

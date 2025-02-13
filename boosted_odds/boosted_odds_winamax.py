@@ -90,8 +90,9 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
             _sport_dict = {}
             for sport in sports:
                 try:
-                    _sport_dict[sport.text] = (
-                        sport.find_element(By.XPATH, ".//a//div[1]")
+                    sport_text = sport.find_element(By.XPATH, ".//a//div[2]//span").get_attribute("innerText")
+                    _sport_dict[sport_text] = (
+                        sport.find_element(By.XPATH, ".//a//div[1]//div//div//div")
                         .get_attribute("class")
                         .split(" ")
                     )
@@ -128,7 +129,8 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
         Returns:
             dict[str, str, str, str, str, bool]: infos of the boosted odd
         """
-        text = boosted_odd.text.split("\n")
+        # Split the text
+        text = boosted_odd.get_attribute("innerText").split("\n")
         heure, title, sub_title, old_odd, odd = (
             text[0],
             text[1],
@@ -137,8 +139,11 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
             text[4],
         )
 
+        is_countdown = self.detect_countdown(lambda: boosted_odd.text.split("\n")[0])
+
+        # Find the sport with the logo
         sport = boosted_odd.find_element(
-            By.XPATH, ".//div[2]//div//div[2]//div//div"
+            By.XPATH, ".//div//div//div//div[1]//div[1]//div//div"
         ).get_attribute("class")
         
         
@@ -147,6 +152,8 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
             if class_sport in self._sport_dict:
                 sport = self._sport_dict[class_sport]
                 break
+
+        # Get the date
         jour = heure.split()[0]
         heure = heure.split()[-1]
         if "Demain" in jour:
@@ -155,17 +162,32 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
             date = datetime.datetime.now() - datetime.timedelta(days=1)
         else:
             date = datetime.datetime.now()
-        heure = datetime.datetime.strptime(heure.split()[-1], "%H:%M")
+
+        if is_countdown == "Countdown":
+            minutes, seconds = map(int, heure.split(":"))
+            match_time = datetime.datetime.now() + datetime.timedelta(minutes=minutes, seconds=seconds)
+
+            # Handle edge case where countdown crosses to the next day
+            if match_time.day > date.day:
+                date += datetime.timedelta(days=1)
+
+            date = date.replace(hour=match_time.hour, minute=match_time.minute, second=match_time.second)
+        else:
+            heure = datetime.datetime.strptime(heure, "%H:%M")
+            date = date.replace(hour=heure.hour, minute=heure.minute)
+
+        # Process the odds
         old_odd = Decimal(old_odd.replace(",", ".")) if old_odd != "" or None else None
         odd = Decimal(odd.replace(",", ".")) if odd != "" or None else None
-        date = date.replace(hour=heure.hour, minute=heure.minute)
 
+        # Check if the odd is gold
         proba_diff = 1 / old_odd - 1 / odd
         if proba_diff > 0.11:
             golden = "gold"
         else:
             golden = "silver"
 
+        # Create the bet
         bet = {
             "title" : title,
             "sub_title" : sub_title,
@@ -175,6 +197,28 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
             "sport" : sport,
         }
         return bet
+    
+    def detect_countdown(self, get_time_func):
+        """
+        Detects whether the displayed time is a countdown or a fixed match time.
+
+        :param get_time_func: A function that retrieves the time string from the webpage.
+        :return: "Countdown" if the time changes, otherwise "Fixed Time"
+        """
+        # Get the first time value
+        initial_time = get_time_func()
+
+        # Wait for at least 1 second
+        time.sleep(1.5)
+
+        # Get the time again
+        new_time = get_time_func()
+
+        # Compare the two values
+        if initial_time != new_time:
+            return "Countdown"  # The time changed → it's a countdown
+        else:
+            return "Fixed Time"
         
     def retrieve_boosted_odds(self):
         """Retrieve the boosted odds from the Winamax website
@@ -210,7 +254,7 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
             # Get the infos of the boosted odd
             bet = self._get_infos_from_boosted_odd(boosted_odd)
             list_bet.append(bet)
-            
+                
         return list_bet
 
     def real_bet_to_send(self, list_bet):

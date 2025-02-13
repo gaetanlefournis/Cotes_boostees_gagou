@@ -127,12 +127,26 @@ class BoostedOddsPSEL(AbstractBoostedOdds):
                 text[3] + " " + text[4],
                 text[5],
             )
+        elif len(text) == 7:
+            title, heure, sub_title, odd = (
+                text[2] + " " + text[0],
+                text[1],
+                text[4] + " " + text[5],
+                text[6],
+            )
         elif len(text) == 9:
             title, heure, sub_title, odd = (
                 text[2] + text[3] + text[4] + " " + text[0],
                 text[1],
                 text[5] + " " + text[7],
                 text[8],
+            )
+        elif len(text) == 10:
+            title, heure, sub_title, odd = (
+                text[3] + text[4] + text[5] + " " + text[0],
+                text[1],
+                text[6] + " " + text[8],
+                text[9],
             )
         else:
             title, heure, sub_title, odd = (

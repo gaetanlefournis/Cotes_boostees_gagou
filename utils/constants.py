@@ -69,6 +69,9 @@ SPORTS_LOGO = {
     "🏒": "Hockey sur glace",
     "🥊": "MMA",
     "🤾": "Handball",
+    "🔫": "Biathlon",
+    "⛷️": "Ski alpin",
+    "🚴‍♂️": "Cyclisme",
 }
 
 
@@ -77,18 +80,17 @@ CONDITIONS_ON_SPORTS = {
         {
         "silver" : 
             {
-           "Basketball": [2.5, 12.0],
-           "Tennis": [3.7, 22.0],
-           "Baseball": [2.5, 9.0],
-           "Biathlon": [5.4, 14.000000000000002],
-           "Football américain": [4.4, 19.0],
-           "Formule 1": [4.4, 12.0],
-           "Handball": [3.1, 16.0],
-           "Hockey sur glace": [2.7, 14.000000000000002],
-           "MMA": [2.5, 8.0],
-           "Rugby à XV": [5.4, 20.0],
-           "Rugby à XIII": [2.6, 12.0],
-           "Volley-ball": [3.5, 13.0],
+           "Football": [2.8, 21],
+           "Basketball": [2.5, 12],
+           "Tennis": [3.7, 22],
+           "Baseball": [2.5, 9],
+           "Biathlon": [5.4, 14],
+           "Football américain": [4.4, 19],
+           "Formule 1": [4.4, 12],
+           "Handball": [3.2, 17],
+           "Hockey sur glace": [2.7, 14],
+           "Rugby à XIII": [2.6, 12],
+           "Volley-ball": [3.5, 13],
             },
         "gold" : 
             {
@@ -102,14 +104,14 @@ CONDITIONS_ON_SPORTS = {
         {
         "silver" : 
             {
-           "Basketball": [2.9, 20.0],
-           "Rugby à XIII": [3.4, 17.0],
+           "Basketball": [2.9, 20],
+           "Rugby à XIII": [3.4, 17],
             },
         "gold" : 
             {
-           "Football": [2.3, 19.0],
-           "Tennis": [3.8, 24.0],
-           "Rugby à XV": [5.9, 24.0],
+           "Football": [2.3, 19],
+           "Tennis": [3.8, 24],
+           "Rugby à XV": [5.9, 24],
             }
         }
     }
