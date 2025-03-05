@@ -19,11 +19,11 @@ from utils.constants import URL_WEPARI_WINAMAX
 class RetrieverWinamax(AbstractRetriever):
     def __init__(
             self,
-            database: str,
-            user: str,
-            password: str,
-            host: str,
-            port: str,
+            db_database: str,
+            db_user: str,
+            db_password: str,
+            db_host: str,
+            db_port: str,
             table: str,
             global_retrieve: bool = False,
             **kwargs,
@@ -34,11 +34,11 @@ class RetrieverWinamax(AbstractRetriever):
         self.LAST_ELEMENT_WITHOUT_GLOBAL = 500
         self.LAST_ELEMENT = 5000
         self.url_wepari = URL_WEPARI_WINAMAX
-        self.db_database = database
-        self.db_user = user
-        self.db_password = password
-        self.db_host = host
-        self.db_port = port
+        self.db_database = db_database
+        self.db_user = db_user
+        self.db_password = db_password
+        self.db_host = db_host
+        self.db_port = db_port
         self.db_table = table
         self.global_retrieve = global_retrieve
         self.driver = None
