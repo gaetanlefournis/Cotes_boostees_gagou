@@ -7,7 +7,7 @@ from utils.tools import load_config
 def main(config_path, env_path):
     config = load_config(config_path, env_path)
     for site in config["BO"]["websites"]:
-        for metal in config["BO"]["metals"]:
+        for metal in config["SPECIFIC"]["metals"]:
             analyze = AnalyzeDataDB1(**config["DB"], metal=metal, table=site)
             dico_result = analyze.analyze_results()
             for sport, dico in dico_result.items():

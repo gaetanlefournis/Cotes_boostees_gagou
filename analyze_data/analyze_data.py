@@ -17,19 +17,19 @@ class AnalyzeDataDB1():
         self, 
         amount_max, 
         metal,
-        user,
-        password, 
-        host,
-        port, 
-        database,
+        db_user,
+        db_password, 
+        db_host,
+        db_port, 
+        db_database,
         table,
         **kwargs
     ) -> None:
-        self.db_user = user
-        self.db_password = password
-        self.db_host = host
-        self.db_port = port
-        self.db_database = database
+        self.db_user = db_user
+        self.db_password = db_password
+        self.db_host = db_host
+        self.db_port = db_port
+        self.db_database = db_database
         self.db_table = table
         self.metal = metal
         self.data = None
