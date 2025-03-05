@@ -11,19 +11,19 @@ class AddSportsManual():
 
     def __init__(
         self,
-        user: str,
-        password: str,
-        host: str,
-        port: str,
-        database: str,
+        db_user: str,
+        db_password: str,
+        db_host: str,
+        db_port: str,
+        db_database: str,
         table_name: str,
         **kwargs,
     ):
-        self.db_user = user
-        self.db_password = password
-        self.db_host = host
-        self.db_port = port
-        self.db_database = database
+        self.db_user = db_user
+        self.db_password = db_password
+        self.db_host = db_host
+        self.db_port = db_port
+        self.db_database = db_database
         self.db_table = table_name
         self.engine = None
         self._instantiate()
