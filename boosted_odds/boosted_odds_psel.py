@@ -45,6 +45,7 @@ class BoostedOddsPSEL(AbstractBoostedOdds):
         self.chat_id = chat_id_telegram
         self._sport_dict = None
         self.final_list_bet = None
+        self.to_bet_list = None
 
     def _instantiate(self) -> None:
         self.driver = uc.Chrome(headless=self.headless, use_subprocess=False)
@@ -316,6 +317,22 @@ class BoostedOddsPSEL(AbstractBoostedOdds):
         else:
             print("No bet to send")
 
+    def _already_bet(self, bet) -> bool:
+        """Check in the db if the bet has already been bet"""
+        query = text(f"SELECT * FROM {self.db_table} WHERE website = :website AND sport = :sport AND title = :title AND sub_title = :sub_title AND old_odd = :old_odd AND odd = :odd AND golden = :golden AND statut = 'BET'")
+        result = self.session.execute(query, {"website": bet["website"], "sport": bet["sport"], "title": bet["title"], "sub_title": bet["sub_title"], "old_odd": bet["old_odd"], "odd": bet["odd"], "golden": bet["golden"]})
+        if result.rowcount > 0:
+            return True
+        return False
+
+    def create_final_list_of_bets(self) -> None:
+        """Create the final list of bets to bet on"""
+        self.to_bet_list = []
+        for bet in self.final_list_bet:
+            if not self._already_bet(bet):
+                self.to_bet_list.append
+        print("Final list of bets created")
+
     async def main(self) -> list:
         try:
             self._instantiate()
@@ -324,9 +341,10 @@ class BoostedOddsPSEL(AbstractBoostedOdds):
             self.real_bet_to_send(list_bet)
             await self.send_bet_to_telegram()
             self.add_bets_in_db()
+            self.create_final_list_of_bets()
         except Exception as e:
             print(f"An error occurred: {e}")
         finally:
             self.driver.close()
             self.driver.quit()
-        return self.final_list_bet
+        return self.to_bet_list
