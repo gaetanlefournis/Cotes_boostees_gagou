@@ -1,4 +1,3 @@
-
 import datetime
 import time
 from decimal import Decimal
@@ -8,6 +7,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql import text
 from telegram import Bot
 
 from abstract.abstract import AbstractBoostedOdds
@@ -17,23 +19,38 @@ from utils.constants import CONDITIONS_ON_SPORTS, URL_BOOSTED_ODDS_WINAMAX
 class BoostedOddsWinamax(AbstractBoostedOdds):
     def __init__(
         self,
-        bet_history: list,
-        headless=True,
-        token_telegram=None,
-        chat_id_telegram=None,
+        db_database : str,
+        db_user : str,
+        db_password : str,
+        db_host : str,
+        db_port : str,
+        db_table : str,
+        headless : bool = True,
+        token_telegram : str = None,
+        chat_id_telegram : str = None,
         **kwargs,
     ) -> None:
+        self.db_database = db_database
+        self.db_user = db_user
+        self.db_password = db_password
+        self.db_host = db_host
+        self.db_port = db_port
+        self.db_table = db_table
         self.WEBSITE = 'winamax'
-        self.bet_history = bet_history
         self.headless = headless
         self.url_connexion = URL_BOOSTED_ODDS_WINAMAX
         self.conditions_on_sports = CONDITIONS_ON_SPORTS["winamax"]
         self.token = token_telegram
         self.chat_id = chat_id_telegram
         self._sport_dict = None
+        self.final_list_bet = None
 
     def _instantiate(self) -> None:
         self.driver = uc.Chrome(headless=self.headless, use_subprocess=False)
+        self.engine = create_engine(
+            f"mysql+mysqlconnector://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_database}"
+        )
+        self.session = sessionmaker(bind=self.engine)()
 
     def load_page(self):
         """Load the page winamax.fr and close the popups and accept the cookies"""
@@ -139,7 +156,8 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
             text[4],
         )
 
-        is_countdown = self.detect_countdown(lambda: boosted_odd.text.split("\n")[0])
+        # if data-testid = boosted-odds-countdown, then it's a countdown
+        is_countdown = len(boosted_odd.find_elements(By.XPATH, "//*[@data-testid='boosted-odds-countdown']")) > 0
 
         # Find the sport with the logo
         sport = boosted_odd.find_element(
@@ -163,7 +181,7 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
         else:
             date = datetime.datetime.now()
 
-        if is_countdown == "Countdown":
+        if is_countdown:
             minutes, seconds = map(int, heure.split(":"))
             match_time = datetime.datetime.now() + datetime.timedelta(minutes=minutes, seconds=seconds)
 
@@ -189,36 +207,16 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
 
         # Create the bet
         bet = {
+            "website": "winamax",
             "title" : title,
             "sub_title" : sub_title,
             "old_odd" : old_odd,
             "odd" : odd,
             "golden" : golden,
             "sport" : sport,
+            "date" : date,
         }
         return bet
-    
-    def detect_countdown(self, get_time_func):
-        """
-        Detects whether the displayed time is a countdown or a fixed match time.
-
-        :param get_time_func: A function that retrieves the time string from the webpage.
-        :return: "Countdown" if the time changes, otherwise "Fixed Time"
-        """
-        # Get the first time value
-        initial_time = get_time_func()
-
-        # Wait for at least 1 second
-        time.sleep(1.5)
-
-        # Get the time again
-        new_time = get_time_func()
-
-        # Compare the two values
-        if initial_time != new_time:
-            return "Countdown"  # The time changed → it's a countdown
-        else:
-            return "Fixed Time"
         
     def retrieve_boosted_odds(self):
         """Retrieve the boosted odds from the Winamax website
@@ -257,8 +255,8 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
                 
         return list_bet
 
-    def real_bet_to_send(self, list_bet):
-        new_list_bet = []
+    def real_bet_to_send(self, list_bet) -> None:
+        self.final_list_bet = []
         for bet in list_bet:
             if bet["sport"] in self.conditions_on_sports[bet["golden"]]:
                 if (
@@ -266,42 +264,54 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
                     >= bet["odd"]) and ((bet["odd"] - bet["old_odd"])/bet["old_odd"] >= self.conditions_on_sports[bet["golden"]][bet["sport"]][1]/100)
                 ):
                     print("\n", bet)
-                    new_list_bet.append(bet)
+                    self.final_list_bet.append(bet)
                 else:
                     pass
-        return new_list_bet
 
-    def _already_in_bet_history(self, bet):
-        for bet_h in self.bet_history:
-            if bet_h["title"] == bet["title"] and bet_h["sub_title"] == bet["sub_title"] and bet_h["old_odd"] == bet["old_odd"] and bet_h["odd"] == bet["odd"] and bet_h["sport"] == bet["sport"]:
-                return True
+    def add_bets_in_db(self) -> None:
+        """Every valid bet must be put in the new database"""
+        for bet in self.final_list_bet:
+            if self._already_in_db(bet):
+                continue
+            else:
+                # Add the bet in the db
+                query = text(f"INSERT INTO {self.db_table} (website, sport, title, sub_title, old_odd, odd, golden, statut, date) VALUES (:website, :sport, :title, :sub_title, :old_odd, :odd, :golden, 'PENDING', :date)")
+                self.session.execute(query, {"website": bet["website"], "sport": bet["sport"], "title": bet["title"], "sub_title": bet["sub_title"], "old_odd": bet["old_odd"], "odd": bet["odd"], "golden": bet["golden"], "date": bet["date"]})
+                self.session.commit()
+
+    def _already_in_db(self, bet) -> bool:
+        """Check if the bet is already in the database"""
+        query = text(f"SELECT * FROM {self.db_table} WHERE website = :website AND sport = :sport AND title = :title AND sub_title = :sub_title AND old_odd = :old_odd AND odd = :odd AND golden = :golden")
+        result = self.session.execute(query, {"website": bet["website"], "sport": bet["sport"], "title": bet["title"], "sub_title": bet["sub_title"], "old_odd": bet["old_odd"], "odd": bet["odd"], "golden": bet["golden"]})
+        if result.rowcount > 0:
+            return True
         return False
 
-    async def send_bet_to_telegram(self, new_list_bet):
-        if new_list_bet:
+    async def send_bet_to_telegram(self) -> None:
+        if self.final_list_bet:
             try:
                 bot = Bot(token=self.token)
-                for bet in new_list_bet:
-                    if not self._already_in_bet_history(bet):
+                for bet in self.final_list_bet:
+                    if not self._already_in_db(bet):
                         message = f"site : {self.WEBSITE}, \nsport: {bet['sport']}, \ntitle : {bet['title']}, \nsubtitle : {bet['sub_title']}, \nold_odd: {bet['old_odd']}, \nnew_odd: {bet['odd']}"
                         await bot.send_message(chat_id=self.chat_id, text=message)
-                        self.bet_history.append(bet)
                 print("Bets sent successfully!")
             except Exception as e:
                 print(f"An error occurred while sending bets: {e}")
         else:
             print("No bet to send")
 
-    async def main(self):
+    async def main(self) -> list:
         try:
             self._instantiate()
             self.load_page()
             list_bet = self.retrieve_boosted_odds()
-            new_list_bet = self.real_bet_to_send(list_bet)
-            await self.send_bet_to_telegram(new_list_bet)
+            self.real_bet_to_send(list_bet)
+            await self.send_bet_to_telegram()
+            self.add_bets_in_db()
         except Exception as e:
             print(f"An error occurred: {e}")
         finally:
             self.driver.close()
             self.driver.quit()
-        return self.bet_history
+        return self.final_list_bet

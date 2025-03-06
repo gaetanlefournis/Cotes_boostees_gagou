@@ -1,6 +1,5 @@
 import argparse
 import asyncio
-import random
 import time
 
 from boosted_odds_psel import BoostedOddsPSEL
@@ -9,21 +8,21 @@ from boosted_odds_winamax import BoostedOddsWinamax
 from utils.tools import load_config
 
 
-def main(config_path, env_path):
+def main(config_path, env_path) -> None:
     config = load_config(config_path, env_path)
-    bet_history = []
     print(f"Starting time: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
     for site in config["BO"]["websites"]:
         print(f"\nBoosted odds for {site} :")
         if site == "winamax":
-            boosted_odds = BoostedOddsWinamax(bet_history=bet_history, **config["BO"]["parameters"])
-            bet_history = asyncio.run(boosted_odds.main())
+            boosted_odds = BoostedOddsWinamax(**config["BO"]["parameters"], **config["DB"])
+            final_list_bet_winamax = asyncio.run(boosted_odds.main())
+            print(final_list_bet_winamax)
         elif site == "PSEL":
-            boosted_odds = BoostedOddsPSEL(bet_history=bet_history, **config["BO"]["parameters"])
-            bet_history = asyncio.run(boosted_odds.main())
+            boosted_odds = BoostedOddsPSEL(**config["BO"]["parameters"], **config["DB"])
+            final_list_bet_psel = asyncio.run(boosted_odds.main())
+            print(final_list_bet_psel)
         else :
             raise ValueError("The betting website is not recognized. Please check the config file.")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
