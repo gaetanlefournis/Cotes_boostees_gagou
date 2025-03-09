@@ -12,11 +12,10 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
 from telegram import Bot
 
-from abstract.abstract import AbstractBoostedOdds
 from utils.constants import CONDITIONS_ON_SPORTS, URL_BOOSTED_ODDS_WINAMAX
 
 
-class BoostedOddsWinamax(AbstractBoostedOdds):
+class BoostedOddsWinamax():
     def __init__(
         self,
         db_database : str,
@@ -26,8 +25,9 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
         db_port : str,
         db_table : str,
         headless : bool = True,
-        token_telegram : str = None,
-        chat_id_telegram : str = None,
+        token : str = None,
+        chat_id : str = None,
+        driver : uc.Chrome = None,
         **kwargs,
     ) -> None:
         self.db_database = db_database
@@ -40,14 +40,16 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
         self.headless = headless
         self.url_connexion = URL_BOOSTED_ODDS_WINAMAX
         self.conditions_on_sports = CONDITIONS_ON_SPORTS["winamax"]
-        self.token = token_telegram
-        self.chat_id = chat_id_telegram
+        self.token = token
+        self.chat_id = chat_id
         self._sport_dict = None
         self.final_list_bet = None
         self.to_bet_list = None
+        self.driver = driver
 
     def _instantiate(self) -> None:
-        self.driver = uc.Chrome(headless=self.headless, use_subprocess=False)
+        if not self.driver:
+            self.driver = uc.Chrome(headless=self.headless, use_subprocess=False)
         self.engine = create_engine(
             f"mysql+mysqlconnector://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_database}"
         )
@@ -139,7 +141,7 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
     def _get_infos_from_boosted_odd(
         self,
         boosted_odd: WebElement,
-    ):
+    ) -> dict:
         """Get the infos from a boosted odd
 
         Args:
@@ -208,7 +210,7 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
 
         # Create the bet
         bet = {
-            "website": "winamax",
+            "website": self.WEBSITE,
             "title" : title,
             "sub_title" : sub_title,
             "old_odd" : old_odd,
@@ -254,7 +256,7 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
             bet = self._get_infos_from_boosted_odd(boosted_odd)
             list_bet.append(bet)
                 
-        return list_bet
+        return boosted_odds, list_bet
 
     def real_bet_to_send(self, list_bet) -> None:
         self.final_list_bet = []
@@ -315,14 +317,19 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
         self.to_bet_list = []
         for bet in self.final_list_bet:
             if not self._already_bet(bet):
-                self.to_bet_list.append
-        print("Final list of bets created")
+                self.to_bet_list.append(bet)
+
+    def close_all(self) -> None:
+        self.session.close()
+        self.engine.dispose()
+        self.driver.close()
+        self.driver.quit()
 
     async def main(self) -> list:
         try:
             self._instantiate()
             self.load_page()
-            list_bet = self.retrieve_boosted_odds()
+            _, list_bet = self.retrieve_boosted_odds()
             self.real_bet_to_send(list_bet)
             await self.send_bet_to_telegram()
             self.add_bets_in_db()
@@ -330,6 +337,5 @@ class BoostedOddsWinamax(AbstractBoostedOdds):
         except Exception as e:
             print(f"An error occurred: {e}")
         finally:
-            self.driver.close()
-            self.driver.quit()
+            self.close_all()
         return self.to_bet_list

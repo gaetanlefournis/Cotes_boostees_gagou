@@ -1,6 +1,6 @@
 import argparse
 
-from analyze_data import AnalyzeDataDB1
+from analyze_data.analyze_data import AnalyzeDataDB1
 from utils.tools import load_config
 
 

@@ -13,11 +13,10 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from telegram import Bot
 
-from abstract.abstract import AbstractBoostedOdds
 from utils.constants import CONDITIONS_ON_SPORTS, URL_BOOSTED_ODDS_PSEL
 
 
-class BoostedOddsPSEL(AbstractBoostedOdds):
+class BoostedOddsPSEL():
     def __init__(
         self,
         db_database : str,
@@ -330,8 +329,7 @@ class BoostedOddsPSEL(AbstractBoostedOdds):
         self.to_bet_list = []
         for bet in self.final_list_bet:
             if not self._already_bet(bet):
-                self.to_bet_list.append
-        print("Final list of bets created")
+                self.to_bet_list.append(bet)
 
     async def main(self) -> list:
         try:

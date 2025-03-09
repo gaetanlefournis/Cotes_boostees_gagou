@@ -1,4 +1,3 @@
-import argparse
 import os
 import shutil
 from typing import Dict
@@ -9,13 +8,12 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 from utils.constants import LIST_SPORTS
-from utils.tools import load_config, save_fig
+from utils.tools import save_fig
 
 
 class AnalyzeDataDB1():
     def __init__(
         self, 
-        amount_max, 
         metal,
         db_user,
         db_password, 
@@ -45,7 +43,7 @@ class AnalyzeDataDB1():
             self.SIZE_TABLE = 50
         self.MIN_AMOUNT_WON = 50
         self.BASE_BET_AMOUNT = 10
-        self.AMOUNT_MAX = amount_max
+        self.AMOUNT_MAX = 10
         self.COEFFICIENT1 = 200
         self.COEFFICIENT2 = 0.1
         self.MIN_PERCENTAGE_CHANGE = 0.0
@@ -123,7 +121,6 @@ class AnalyzeDataDB1():
         Calculate the amount to bet based on the money won and the number of bets. The greater the amount won per bet, the bigger the amount to bet. The more bets, the bigger the amount to bet.
 
         Parameters:
-        - amount_max: Maximum amount allowed for betting.
         - money_won: Amount of money won.
         - nb_bets: Number of bets.
 

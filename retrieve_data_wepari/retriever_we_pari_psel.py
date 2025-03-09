@@ -12,11 +12,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
 
-from abstract.abstract import AbstractRetriever
+from utils.abstract import AbstractRetrieverWePari
 from utils.constants import URL_WEPARI_PSEL
 
 
-class RetrieverPSEL(AbstractRetriever):
+class RetrieverPSELWePari(AbstractRetrieverWePari):
     def __init__(
             self,
             db_database: str,

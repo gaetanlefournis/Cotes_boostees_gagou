@@ -1,23 +1,18 @@
 import argparse
 
-from retriever_psel import RetrieverPSEL
-from retriever_winamax import RetrieverWinamax
-
+from retrieve_data_wepari.retriever_we_pari_psel import RetrieverPSELWePari
+from retrieve_data_wepari.retriever_we_pari_winamax import \
+    RetrieverWinamaxWePari
 from utils.tools import load_config
 
 
 def main(config_path, env_path):
     config = load_config(config_path, env_path)
-    for site in config["BO"]["websites"]:
+    list_websites = {"winamax": RetrieverWinamaxWePari, "PSEL": RetrieverPSELWePari}
+    for site in list_websites.keys():
         print(f"\nRetrieving data for {site} :")
-        if site == "winamax":
-            retriever_wepari = RetrieverWinamax(**config["DB"], table=site)
-            retriever_wepari()
-        elif site == "PSEL":
-            retriever_wepari = RetrieverPSEL(**config["DB"], table=site)
-            retriever_wepari()
-        else :
-            raise ValueError("The betting website is not recognized. Please check the config file.")
+        retriever_wepari = list_websites[site](**config["DB"], global_retrieve=config["SPECIFIC"]["global_retrieve"], table=site)
+        retriever_wepari()
 
 
 if __name__ == "__main__":
