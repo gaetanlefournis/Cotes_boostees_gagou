@@ -53,16 +53,24 @@ class Database():
         if result.rowcount > 0:
             return True
         return False
+    
+    def already_bet_statut(self, data : dict) -> bool:
+        """Check if the bet is already with a 'BET' statut"""
+        query = text(f"SELECT * FROM {self.db_table} WHERE website = :website AND sport = :sport AND title = :title AND sub_title = :sub_title AND old_odd = :old_odd AND odd = :odd AND golden = :golden AND statut = :statut")
+        result = self.session.execute(query, {"website": data["website"], "sport": data["sport"], "title": data["title"], "sub_title": data["sub_title"], "old_odd": data["old_odd"], "odd": data["odd"], "golden": data["golden"], "statut": "BET"})
+        if result.rowcount > 0:
+            return True
+        return False
 
-
-    def select(self, query : str) -> None:
-        """
-        Select data from the database
-        """
-        pass
-
-    def update(self, query : str) -> None:
+    def update_bet_statut(self, data : dict) -> None:
         """
         Update data in the database
         """
-        pass
+        query = text(f"UPDATE {self.db_table} SET statut = 'BETTED' WHERE website = :website AND sport = :sport AND title = :title AND sub_title = :sub_title AND old_odd = :old_odd AND odd = :odd")
+        self.session.execute(query, {'website': data['website'], 'sport': data['sport'], 'title': data['title'], 'sub_title': data['sub_title'], 'old_odd': data['old_odd'], 'odd': data['odd']})
+        self.session.commit()
+
+    def close(self):
+        """Close the engine"""
+        self.session.close()
+        self.engine.dispose()

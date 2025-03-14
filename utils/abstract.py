@@ -2,6 +2,9 @@ from abc import ABC, abstractmethod
 
 import undetected_chromedriver as uc
 
+from boosted_odds.boosted_odds_object.boosted_odds_object import \
+    BoostedOddsObject
+
 
 class AbstractRetrieverWePari(ABC):
     
@@ -49,6 +52,24 @@ class AbstractRetriever(ABC):
 
     @abstractmethod
     def run(self):
+        pass
+
+class AbstractBettor(ABC):
+
+    @abstractmethod
+    def _initiate(self):
+        pass
+
+    @abstractmethod
+    def _connection_to_website(self):
+        pass
+
+    @abstractmethod
+    def _bet_on_boosted_odd(self, boosted_odd : BoostedOddsObject):
+        pass
+
+    @abstractmethod
+    def run(self, list_boosted_odds : list[BoostedOddsObject]):
         pass
 
 class AbstractBetAutomation(ABC):

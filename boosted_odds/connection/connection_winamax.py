@@ -72,8 +72,6 @@ class ConnectionWinamax(BettingSiteConnect):
         accept_button = self._find_button_by_text("tout accepter")
         if accept_button:
             self.behavior.random_click(accept_button)
-        if self._logger is not None:
-            self._logger.info("Cookies accepted")
         return True
 
     def _login(self):
@@ -88,7 +86,6 @@ class ConnectionWinamax(BettingSiteConnect):
         
         username_input = self._find_element_by_placeholder("Email")
         password_input = self._find_element_by_placeholder("Mot de passe")
-        print("oui")
         self.behavior.random_click(username_input)
         self.behavior.dwell_time()
         self.behavior.human_type(username_input, self.username,rand=False)
@@ -96,7 +93,6 @@ class ConnectionWinamax(BettingSiteConnect):
         self.behavior.dwell_time()
         self.behavior.human_type(password_input, self.password,rand=False)
         login_button = self._find_button_by_text("se connecter")
-        print("non")
         if login_button:
             self.behavior.random_click(login_button)
 

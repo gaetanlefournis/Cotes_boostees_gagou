@@ -7,7 +7,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from telegram import Bot
 
 from boosted_odds.boosted_odds_object.boosted_odds_object import \
     BoostedOddsObject
@@ -17,24 +16,23 @@ from utils.tools import find_button_by_text
 
 
 class RetrieverWinamax(AbstractRetriever):
+    """Class to retrieve the boosted odds from winamax. After the connection, the final goal is to return a list of boosted odds that respect the conditions in the constants file."""
     def __init__(
         self,
-        headless : bool = True,
         driver : uc.Chrome = None,
         **kwargs,
     ) -> None:
-        self.WEBSITE = "Winamax"
-        self.headless = headless
+        self.WEBSITE = "winamax"
         self.url_connexion = URL_BOOSTED_ODDS_WINAMAX
-        self.conditions_on_sports = CONDITIONS_ON_SPORTS["winamax"]
+        self.conditions_on_sports = CONDITIONS_ON_SPORTS[self.WEBSITE]
         self._sport_dict = None
+        self.final_list_bet = None
         self.list_boosted_odds_objects = []
         self.driver = driver
 
-    def _initiate(self) -> None:
-        """Create the driver if it doesn't exist yet"""
-        if not self.driver:
-            self.driver = uc.Chrome(headless=self.headless, use_subprocess=False)
+    def _initiate(self):
+        """Instantiate the object if there are. Nothing for the moment"""
+        pass
 
     def _load_page(self) -> None:
         """Load the page winamax.fr and close the popups and accept the cookies"""
@@ -207,7 +205,7 @@ class RetrieverWinamax(AbstractRetriever):
         """Retrieve the boosted odds from the Winamax website
 
         Returns:
-            Tuple[List[WebElement],List[Dict[str,str]]]: list of boosted odds, list of tuples (sport, odd)
+            list[BoostedOddsObject] : a list with the objects boosted odds, containing the web element + the characteristics of the boosted odd.
         """
         # Get sport classes
         self._get_sports_classes()
@@ -247,15 +245,10 @@ class RetrieverWinamax(AbstractRetriever):
                     (self.conditions_on_sports[bet.golden][bet.sport][0]
                     >= bet.odd) and ((bet.odd - bet.old_odd)/bet.old_odd >= self.conditions_on_sports[bet.golden][bet.sport][1]/100)
                 ):
-                    print("\n", bet)
+                    bet.print_obj()
                     self.final_list_bet.append(bet)
                 else:
                     pass
-
-    def close_all(self) -> None:
-        """Close the driver"""
-        self.driver.close()
-        self.driver.quit()
 
     def run(self) -> list[BoostedOddsObject]:
         """Main function to retrieve the boosted odds from the Winamax website"""
@@ -266,6 +259,4 @@ class RetrieverWinamax(AbstractRetriever):
             self._retrieve_only_good_ones()
         except Exception as e:
             print(f"An error occurred: {e}")
-        finally:
-            self.close_all()
         return self.final_list_bet
