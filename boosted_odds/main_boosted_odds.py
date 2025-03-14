@@ -11,16 +11,14 @@ from utils.tools import load_config
 def main(config_path, env_path) -> None:
     config = load_config(config_path, env_path)
     print(f"Starting time: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
-    for site in config["BO"]["websites"]:
+    for site in ["winamax", "PSEL"]:
         print(f"\nBoosted odds for {site} :")
         if site == "winamax":
-            boosted_odds = BoostedOddsWinamax(**config["BO"]["parameters"], **config["DB"])
+            boosted_odds = BoostedOddsWinamax(**config["BO"], **config["DB"], **config["TELEGRAM"])
             final_list_bet_winamax = asyncio.run(boosted_odds.main())
-            print(final_list_bet_winamax)
         elif site == "PSEL":
-            boosted_odds = BoostedOddsPSEL(**config["BO"]["parameters"], **config["DB"])
+            boosted_odds = BoostedOddsPSEL(**config["BO"], **config["DB"], **config["TELEGRAM"])
             final_list_bet_psel = asyncio.run(boosted_odds.main())
-            print(final_list_bet_psel)
         else :
             raise ValueError("The betting website is not recognized. Please check the config file.")
 

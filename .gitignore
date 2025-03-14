@@ -5,3 +5,5 @@ results/
 **__pycache**
 logs_boosted_odds.log
 logs_bet_automation.log
+logs_main_code_boosted_odds.log
+*.json

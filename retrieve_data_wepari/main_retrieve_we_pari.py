@@ -11,7 +11,7 @@ def main(config_path, env_path):
     list_websites = {"winamax": RetrieverWinamaxWePari, "PSEL": RetrieverPSELWePari}
     for site in list_websites.keys():
         print(f"\nRetrieving data for {site} :")
-        retriever_wepari = list_websites[site](**config["DB"], global_retrieve=config["SPECIFIC"]["global_retrieve"], table=site)
+        retriever_wepari = list_websites[site](**config["DB_VPS"], global_retrieve=config["SPECIFIC"]["global_retrieve"], table=site)
         retriever_wepari()
 
 
@@ -33,4 +33,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     main(args.config_path, args.env_path)
 
-    # python3 retrieve_data_wepari/main_retrieve.py --config_path config/config_gagou.yaml --env_path config/.env.gagou
+    # python3 retrieve_data_wepari/main_retrieve_we_pari.py --config_path config/config_gagou.yaml --env_path config/.env.gagou
