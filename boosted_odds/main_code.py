@@ -1,15 +1,17 @@
+"""MAIN CODE"""
+
 import argparse
 import asyncio
 import time
 
 import undetected_chromedriver as uc
-from bettor.bettor_psel import BettorPSEL
-from bettor.bettor_winamax import BettorWinamax
-from boosted_odds_object.boosted_odds_object import BoostedOddsObject
-from database.main_database import Database
-from retriever.retriever_psel import RetrieverPSEL
-from retriever.retriever_winamax import RetrieverWinamax
-from telegram_bot.main_telegram import TelegramBot
+from boosted_odds.bettor.bettor_psel import BettorPSEL
+from boosted_odds.bettor.bettor_winamax import BettorWinamax
+from boosted_odds.boosted_odds_object.boosted_odds_object import BoostedOddsObject
+from boosted_odds.database.main_database import Database
+from boosted_odds.retriever.retriever_psel import RetrieverPSEL
+from boosted_odds.retriever.retriever_winamax import RetrieverWinamax
+from boosted_odds.telegram_bot.main_telegram import TelegramBot
 
 from utils.human_behavior import HumanBehavior
 from utils.tools import load_config
@@ -27,8 +29,8 @@ class MainBoostedOdds():
     """
 
     def __init__(
-        self, 
-        config_path : str, 
+        self,
+        config_path : str,
         env_path : str
     ) -> None:
         self.config = None
@@ -37,7 +39,7 @@ class MainBoostedOdds():
         self.human_behavior = None
         self.database = None
         self._initiate(config_path, env_path)
-        
+
     def _initiate(self, config_path : str, env_path : str) -> None:
         """
         Initialize the main class. 
@@ -56,7 +58,7 @@ class MainBoostedOdds():
         """
         list_boosted_odds = []
         # First step : retrieve the boosted odds of every website
-        for site in self.class_creation_list.keys():
+        for site in self.class_creation_list:
             print(f"\nRetrieve odds for {site} :")
             retriever = self.class_creation_list[site][0](driver = self.driver)
             list_boosted_odds_partial = retriever.run()
@@ -77,7 +79,7 @@ class MainBoostedOdds():
         The program will bet on the odds with a pending statut in the database. 
         The program will run for each website in the config file.
         """
-        for site in self.class_creation_list.keys():
+        for site in self.class_creation_list:
             if len(self.class_creation_list[site]) > 1:
 
                 # Take the odds only for this website, only if not already bet on it
@@ -108,7 +110,7 @@ class MainBoostedOdds():
         """
         print(f"Starting time: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
         
-        try : 
+        try :
             list_boosted_odds = asyncio.run(self.main_retrieve())
             self.main_bet(list_boosted_odds)
         except Exception as e:
@@ -135,6 +137,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     automate = MainBoostedOdds(args.config_path, args.env_path)
     automate.run()
-    
 
     # python3 boosted_odds/main_code.py --config_path config/config_gagou.yaml --env_path config/.env.gagou 
