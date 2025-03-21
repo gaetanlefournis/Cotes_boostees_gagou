@@ -5,14 +5,15 @@ import asyncio
 import time
 
 import undetected_chromedriver as uc
+
 from boosted_odds.bettor.bettor_psel import BettorPSEL
 from boosted_odds.bettor.bettor_winamax import BettorWinamax
-from boosted_odds.boosted_odds_object.boosted_odds_object import BoostedOddsObject
+from boosted_odds.boosted_odds_object.boosted_odds_object import \
+    BoostedOddsObject
 from boosted_odds.database.main_database import Database
 from boosted_odds.retriever.retriever_psel import RetrieverPSEL
 from boosted_odds.retriever.retriever_winamax import RetrieverWinamax
 from boosted_odds.telegram_bot.main_telegram import TelegramBot
-
 from utils.human_behavior import HumanBehavior
 from utils.tools import load_config
 
@@ -49,29 +50,38 @@ class MainBoostedOdds():
         self.class_creation_list = {"winamax" : [RetrieverWinamax, BettorWinamax], "PSEL" : [RetrieverPSEL]}
         self.driver = uc.Chrome(headless=self.config["BO"]["headless"], user_agent=self.config["BO"]["user_agent"], use_subprocess=False)
         self.human_behavior = HumanBehavior(self.driver)
-        self.database = Database(**self.config["DB"])
+        self.database = Database(**self.config["DB_VPS"])
         self.telegram = TelegramBot(**self.config["TELEGRAM"])
 
     async def main_retrieve(self) -> list[BoostedOddsObject]:
         """Main function to start the boosted odds. 
         The program will first retrieve the boosted odds for each website. 
         """
-        list_boosted_odds = []
+        final_good_boosted_odds = []
+        final_all_boosted_odds = []
         # First step : retrieve the boosted odds of every website
         for site in self.class_creation_list:
             print(f"\nRetrieve odds for {site} :")
             retriever = self.class_creation_list[site][0](driver = self.driver)
-            list_boosted_odds_partial = retriever.run()
-            list_boosted_odds += list_boosted_odds_partial
+            all_boosted_odds, good_boosted_odds = retriever.run()
+            final_good_boosted_odds += good_boosted_odds
+            final_all_boosted_odds += all_boosted_odds
+        
+        print(f"length all boosted odds : {len(final_all_boosted_odds)}")
 
-        # Second step : Send a message to telegram if it's the first time seeing this odd
+        # Second step : Insert the boosted odds in the database corresponding to each odd if not already in
+        for boosted_odd in final_all_boosted_odds:
+            if not self.database.already_in_db(boosted_odd.dictionary, table=boosted_odd.website):
+                self.database.insert(boosted_odd.dictionary, table=boosted_odd.website)
+
+        # Third step : Send a message to telegram if it's the first time seeing this odd
         # and put the boosted odds in the database
-        for boosted_odd in list_boosted_odds:
-            if not self.database.already_in_db(boosted_odd.dictionary):
+        for boosted_odd in final_good_boosted_odds:
+            if not self.database.already_in_db(boosted_odd.dictionary, table=self.config["DB_VPS"]["db_table"]):
                 await self.telegram.send_boosted_odd_to_telegram(boosted_odd.dictionary)
-                self.database.insert(boosted_odd.dictionary)
+                self.database.insert(boosted_odd.dictionary, table=self.config["DB_VPS"]["db_table"])
 
-        return list_boosted_odds
+        return final_good_boosted_odds
 
     def main_bet(self, list_boosted_odds : list[BoostedOddsObject]) -> None:
         """Main function to start the betting. 
@@ -83,7 +93,7 @@ class MainBoostedOdds():
             if len(self.class_creation_list[site]) > 1:
 
                 # Take the odds only for this website, only if not already bet on it
-                new_list_boosted_odds = [obj for obj in list_boosted_odds if (obj.website == site and not self.database.already_bet_statut(obj.dictionary))]
+                new_list_boosted_odds = [obj for obj in list_boosted_odds if (obj.website == site and not self.database.already_bet_statut(obj.dictionary, table=self.config["DB_VPS"]["db_table"]))]
 
                 # Create the bettor only if there is a new bet to take.
                 if len(new_list_boosted_odds) >= 1:
@@ -93,7 +103,7 @@ class MainBoostedOdds():
 
             # Update in the database all the 'PENDING' bets statuts into 'BETTED'
             for boosted_odd in new_list_boosted_odds:
-                self.database.update_bet_statut(boosted_odd.dictionary)
+                self.database.update_bet_statut(boosted_odd.dictionary, self.config["DB_VPS"]["db_table"])
 
     def _close_all(self):
         """Close the driver"""
@@ -112,7 +122,7 @@ class MainBoostedOdds():
         
         try :
             list_boosted_odds = asyncio.run(self.main_retrieve())
-            self.main_bet(list_boosted_odds)
+            #self.main_bet(list_boosted_odds)
         except Exception as e:
             print(f"There was a problem in the boosted_odds program : {e}")
         finally:

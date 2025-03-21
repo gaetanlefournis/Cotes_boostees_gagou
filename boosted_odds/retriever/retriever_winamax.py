@@ -28,6 +28,7 @@ class RetrieverWinamax(AbstractRetriever):
         self._sport_dict = None
         self.final_list_bet = None
         self.list_boosted_odds_objects = []
+        self.all_boosted_odds = None
         self.driver = driver
 
     def _initiate(self):
@@ -250,13 +251,13 @@ class RetrieverWinamax(AbstractRetriever):
                 else:
                     pass
 
-    def run(self) -> list[BoostedOddsObject]:
+    def run(self) -> tuple[list[BoostedOddsObject], list[BoostedOddsObject]]:
         """Main function to retrieve the boosted odds from the Winamax website"""
         try:
             self._initiate()
             self._load_page()
-            _ = self._retrieve_boosted_odds()
+            self.all_boosted_odds = self._retrieve_boosted_odds()
             self._retrieve_only_good_ones()
         except Exception as e:
             print(f"An error occurred: {e}")
-        return self.final_list_bet
+        return self.all_boosted_odds, self.final_list_bet
