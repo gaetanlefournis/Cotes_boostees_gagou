@@ -48,7 +48,18 @@ class MainBoostedOdds():
         """
         self.config = load_config(config_path, env_path)
         self.class_creation_list = {"winamax" : [RetrieverWinamax, BettorWinamax], "PSEL" : [RetrieverPSEL]}
-        self.driver = uc.Chrome(headless=self.config["BO"]["headless"], user_agent=self.config["BO"]["user_agent"], use_subprocess=False)
+
+        # Driver 
+        options = uc.ChromeOptions()  
+        options.add_argument(f"--headless={self.config["BO"]["headless"]}") 
+        options.add_argument(f"--user-agent={self.config["BO"]["user_agent"]}")
+        options.add_argument("--use_subprocess=False")
+        options.add_argument("--no-sandbox")  
+        options.add_argument("--disable-dev-shm-usage")  
+        options.add_argument("--remote-debugging-port=9222")  
+        self.driver = uc.Chrome(options=options)
+
+        # The rest
         self.human_behavior = HumanBehavior(self.driver)
         self.database = Database(**self.config["DB_VPS"])
         self.telegram = TelegramBot(**self.config["TELEGRAM"])
