@@ -51,8 +51,8 @@ class MainBoostedOdds():
 
         # Driver 
         options = uc.ChromeOptions()  
-        options.add_argument(f"--headless={self.config["BO"]["headless"]}") 
-        options.add_argument(f"--user-agent={self.config["BO"]["user_agent"]}")
+        options.add_argument(f"--headless={self.config['BO']['headless']}") 
+        options.add_argument(f"--user-agent={self.config['BO']['user_agent']}")
         options.add_argument("--use_subprocess=False")
         options.add_argument("--no-sandbox")  
         options.add_argument("--disable-dev-shm-usage")  
