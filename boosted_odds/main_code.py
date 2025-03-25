@@ -134,7 +134,7 @@ class MainBoostedOdds():
         
         try :
             list_boosted_odds = asyncio.run(self.main_retrieve())
-            #self.main_bet(list_boosted_odds)
+            self.main_bet(list_boosted_odds)
         except Exception as e:
             print(f"There was a problem in the boosted_odds program : {e}")
         finally:

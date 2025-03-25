@@ -52,19 +52,19 @@ class Database():
         Check if the data is already in the database
         """
         if table == "winamax" or table == "PSEL":
-            query = text(f"SELECT * FROM {table} WHERE sport = :sport AND title = :title AND sub_title = :sub_title AND old_odd = :old_odd AND odd = :odd AND golden = :golden")
-            result = self.session.execute(query, {"sport": data["sport"], "title": data["title"], "sub_title": data["sub_title"], "old_odd": data["old_odd"], "odd": data["odd"], "golden": data["golden"]})
+            query = text(f"SELECT * FROM {table} WHERE sport = :sport AND title = :title AND sub_title = :sub_title AND golden = :golden")
+            result = self.session.execute(query, {"sport": data["sport"], "title": data["title"], "sub_title": data["sub_title"], "golden": data["golden"]})
         else:
-            query = text(f"SELECT * FROM {table} WHERE website = :website AND sport = :sport AND title = :title AND sub_title = :sub_title AND old_odd = :old_odd AND odd = :odd AND golden = :golden")
-            result = self.session.execute(query, {"website": data["website"], "sport": data["sport"], "title": data["title"], "sub_title": data["sub_title"], "old_odd": data["old_odd"], "odd": data["odd"], "golden": data["golden"]})
+            query = text(f"SELECT * FROM {table} WHERE website = :website AND sport = :sport AND title = :title AND sub_title = :sub_title AND golden = :golden")
+            result = self.session.execute(query, {"website": data["website"], "sport": data["sport"], "title": data["title"], "sub_title": data["sub_title"], "golden": data["golden"]})
         if result.rowcount > 0:
             return True
         return False
     
     def already_bet_statut(self, data : dict, table : str) -> bool:
         """Check if the bet is already with a 'BET' statut"""
-        query = text(f"SELECT * FROM {table} WHERE website = :website AND sport = :sport AND title = :title AND sub_title = :sub_title AND old_odd = :old_odd AND odd = :odd AND golden = :golden AND statut = :statut")
-        result = self.session.execute(query, {"website": data["website"], "sport": data["sport"], "title": data["title"], "sub_title": data["sub_title"], "old_odd": data["old_odd"], "odd": data["odd"], "golden": data["golden"], "statut": "BET"})
+        query = text(f"SELECT * FROM {table} WHERE website = :website AND sport = :sport AND title = :title AND sub_title = :sub_title AND golden = :golden AND statut = :statut")
+        result = self.session.execute(query, {"website": data["website"], "sport": data["sport"], "title": data["title"], "sub_title": data["sub_title"], "golden": data["golden"], "statut": "BET"})
         if result.rowcount > 0:
             return True
         return False
@@ -73,8 +73,8 @@ class Database():
         """
         Update data in the database
         """
-        query = text(f"UPDATE {table} SET statut = 'BETTED' WHERE website = :website AND sport = :sport AND title = :title AND sub_title = :sub_title AND old_odd = :old_odd AND odd = :odd")
-        self.session.execute(query, {"website": data["website"], "sport": data["sport"], "title": data["title"], "sub_title": data["sub_title"], "old_odd": data["old_odd"], "odd": data["odd"]})
+        query = text(f"UPDATE {table} SET statut = 'BETTED' WHERE website = :website AND sport = :sport AND title = :title AND sub_title = :sub_title")
+        self.session.execute(query, {"website": data["website"], "sport": data["sport"], "title": data["title"], "sub_title": data["sub_title"]})
         self.session.commit()
 
     def close(self):
