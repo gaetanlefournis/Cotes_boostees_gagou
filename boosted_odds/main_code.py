@@ -11,6 +11,7 @@ from boosted_odds.bettor.bettor_winamax import BettorWinamax
 from boosted_odds.boosted_odds_object.boosted_odds_object import \
     BoostedOddsObject
 from boosted_odds.database.main_database import Database
+from boosted_odds.retriever.retriever_betclic import RetrieverBetclic
 from boosted_odds.retriever.retriever_psel import RetrieverPSEL
 from boosted_odds.retriever.retriever_winamax import RetrieverWinamax
 from boosted_odds.telegram_bot.main_telegram import TelegramBot
@@ -47,7 +48,7 @@ class MainBoostedOdds():
         Load the configuration and environment files and create the driver.
         """
         self.config = load_config(config_path, env_path)
-        self.class_creation_list = {"winamax" : [RetrieverWinamax, BettorWinamax], "PSEL" : [RetrieverPSEL]}
+        self.class_creation_list = {"winamax" : [RetrieverWinamax, BettorWinamax], "PSEL" : [RetrieverPSEL], "betclic": [RetrieverBetclic]}
 
         # Driver 
         options = uc.ChromeOptions()  

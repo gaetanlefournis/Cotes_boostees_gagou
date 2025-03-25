@@ -12,19 +12,19 @@ from selenium.webdriver.support.ui import WebDriverWait
 from boosted_odds.boosted_odds_object.boosted_odds_object import \
     BoostedOddsObject
 from utils.abstract import AbstractRetriever
-from utils.constants import CONDITIONS_ON_SPORTS, URL_BOOSTED_ODDS_PSEL
+from utils.constants import CONDITIONS_ON_SPORTS, URL_BOOSTED_ODDS_BETCLIC
 from utils.tools import find_button_by_text
 
 
-class RetrieverPSEL(AbstractRetriever):
-    """Class to retrieve the boosted odds from PSEL. After the connection, the final goal is to return a list of boosted odds that respect the conditions in the constants file."""
+class RetrieverBetclic(AbstractRetriever):
+    """Class to retrieve the boosted odds from Betclic. After the connection, the final goal is to return a list of boosted odds that respect the conditions in the constants file."""
     def __init__(
         self,
         driver : uc.Chrome = None,
         **kwargs,
     ) -> None:
-        self.WEBSITE = "PSEL"
-        self.url_connexion = URL_BOOSTED_ODDS_PSEL
+        self.WEBSITE = "betclic"
+        self.url_connexion = URL_BOOSTED_ODDS_BETCLIC
         self.conditions_on_sports = CONDITIONS_ON_SPORTS[self.WEBSITE]
         self._sport_dict = None
         self.final_list_bet = None
@@ -37,7 +37,7 @@ class RetrieverPSEL(AbstractRetriever):
         pass
 
     def _load_page(self) -> None:
-        """Load the page parionssport.fdj.fr and close the popups and accept the cookies"""
+        """Load the page betclic.fr and close the popups and accept the cookies"""
         self.driver.get(self.url_connexion)
         try : 
             WebDriverWait(self.driver, 20).until(
@@ -73,20 +73,21 @@ class RetrieverPSEL(AbstractRetriever):
         try:
             WebDriverWait(self.driver, 20).until(
                 EC.presence_of_element_located(
-                    (By.XPATH, "//psel-ept-sports")
+                    (By.XPATH, "//div[@class='list is-sportList']")
                 )
             )
             left = self.driver.find_element(
-                By.XPATH, "//psel-ept-sports"
-            ).find_element(By.XPATH, ".//ul[1]")
+                By.XPATH, "//div[@class='list is-sportList']"
+            ).find_element(By.XPATH, ".//div[2]")
 
             # Get the list of the sports
             sports = left.find_elements(By.XPATH, "./*")
             _sport_dict = {}
             for sport in sports:
                 try:
-                    _sport_dict[sport.text] = (
-                        sport.find_element(By.XPATH, ".//button//span[1]//span")
+                    sport_text = sport.find_element(By.XPATH, ".//div//div[2]//div").get_attribute("innerText")
+                    _sport_dict[sport_text] = (
+                        sport.find_element(By.XPATH, ".//div//div[1]//span")
                         .get_attribute("class")
                         .split(" ")
                     )
@@ -95,7 +96,7 @@ class RetrieverPSEL(AbstractRetriever):
             # For each sport key keep only elements in the list that are unique amongst all the lists of the dict
             new_dict = {}
             for key, value in _sport_dict.items():
-                new_dict[value[0]] = key
+                new_dict[value[2]] = key
             self._sport_dict = new_dict
                 
         except Exception as e:
@@ -212,33 +213,42 @@ class RetrieverPSEL(AbstractRetriever):
                 EC.presence_of_all_elements_located(
                     (
                         By.XPATH,
-                        "//div[@class='psel-sport-events']",
+                        "//ul[@class='carousel_list']",
                     )
                 )
             )
             time.sleep(1)
             wrappers = self.driver.find_elements(
                 By.XPATH,
-                "//div[@class='psel-sport-events']",
+                "//ul[@class='carousel_list']",
             )
             
-            boosted_odds = wrappers[0].find_elements(
+            important_matches = wrappers[0].find_elements(
                 By.XPATH,
                 "./*",
             )[1:]
             
         except Exception as _:
             print("Error while retrieving the boosted odds")
-            boosted_odds = []
+            important_matches = []
 
-        for boosted_odd in boosted_odds:
-            if "Réessayez" in boosted_odd.text:
-                print("No boosted odds")
-                return []
-            else :
-                # Get the infos of the boosted odd
-                bet = self._get_infos_from_boosted_odd(boosted_odd)
-                self.list_boosted_odds_objects.append(BoostedOddsObject(boosted_odd, **bet))
+        for important_match in important_matches:
+            # Click on the match
+            important_match.click()
+
+            # find the boosted odds
+            try:
+                boosted_odds = self.driver.find_elements(
+                    By.TAG_NAME,
+                    "sports-boosted-odds-market-card",
+                )
+                for boosted_odd in boosted_odds:
+                    # Get the infos of the boosted odd
+                    bet = self._get_infos_from_boosted_odd(boosted_odd)
+                    self.list_boosted_odds_objects.append(BoostedOddsObject(boosted_odd, **bet))
+            except:
+                print("There is no boosted odds")
+                pass
             
         return self.list_boosted_odds_objects
 
