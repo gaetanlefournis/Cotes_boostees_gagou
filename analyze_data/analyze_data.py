@@ -80,7 +80,7 @@ class AnalyzeDataDB1():
         dico_amount = {}
         for sport in self.LIST_SPORTS:
             
-            dico_amount[sport] = [None, None, np.NINF, 0, 0]
+            dico_amount[sport] = [None, None, -np.inf, 0, 0]
             df_sport = self.data[self.data['sport'] == sport]
 
             if self.metal == "both":

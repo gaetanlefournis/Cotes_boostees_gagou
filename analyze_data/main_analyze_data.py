@@ -4,9 +4,12 @@ from analyze_data.analyze_data import AnalyzeDataDB1
 from utils.tools import load_config
 
 
-def main(config_path, env_path):
+def main(config_path : str, env_path : str) -> None:
+    """
+    Main function to process the analyzing of boosted odds database
+    """
     config = load_config(config_path, env_path)
-    for site in config["BO"]["websites"]:
+    for site in ["winamax", "PSEL"]:
         for metal in config["SPECIFIC"]["metals"]:
             analyze = AnalyzeDataDB1(**config["DB_VPS"], metal=metal, table=site)
             dico_result = analyze.analyze_results()
