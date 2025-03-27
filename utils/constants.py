@@ -5,9 +5,11 @@ URL_WEPARI_WINAMAX = "https://wepari.fr/indexh.html"
 URL_WEPARI_PSEL = "https://wepari.fr/indexpsel.html"
 URL_BOOSTED_ODDS_WINAMAX = "https://www.winamax.fr/paris-sportifs/sports/100000"
 URL_BOOSTED_ODDS_PSEL = "https://www.enligne.parionssport.fdj.fr/cotes-boostees"
+URL_BOOSTED_ODDS_BETCLIC = "https://www.betclic.fr/"
+URL_BOOSTED_ODDS_UNIBET = "https://www.unibet.fr/sport/super-cotes-boostees"
 URL_CONNEXION_WINAMAX = "https://www.winamax.fr/account/login.php?redir=/paris-sportifs"
 URL_CONNEXION_PSEL = "https://www.enligne.parionssport.fdj.fr/?prompt=true&from=prehome-header"
-URL_BOOSTED_ODDS_BETCLIC = "https://www.betclic.fr/"
+
 
 # List of possible sports on Winamax
 LIST_SPORTS = ["Football", "Basketball", "Tennis", "Athlétisme", "Automobile", "Aviron", "Badminton", "Baseball", "Beach-volley", "Biathlon", "Boxe", "Canoé-kayak", "Cyclisme", "Escalade", "Escrime", "Equitation", "Football américain", "Football australien", "Formule 1", "Golf", "Haltérophilie", "Handball", "Hockey sur gazon", "Hockey sur glace", "JO", "Judo", "Lutte", "MMA", "Moto", "Natation", "Pentathlon moderne", "Pétanque", "Rugby à XV", "Rugby à XIII", "Rugby à 7", "Ski alpin", "Ski de fond", "Snooker", "Taekwondo", "Tennis de table", "Tir", "Tir à l arc", "Triathlon", "Voile", "Volley-ball", "Water-polo"]
@@ -110,7 +112,7 @@ CONDITIONS_ON_SPORTS = {
             {
            "Football": [2.4, 19],
            "Basketball": [2.9, 20],
-           "Tennis": [2.5, 15],
+           "Tennis": [2.6, 16],
            "Rugby à XIII": [3.4, 17],
             },
         "gold" : 
@@ -121,5 +123,15 @@ CONDITIONS_ON_SPORTS = {
             }
         },
     "betclic":
-        {}
+        {"silver":
+            {},
+        "gold":
+            {},
+        },
+    "unibet":
+        {"silver":
+            {},
+        "gold":
+            {},
+        },
     }

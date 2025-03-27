@@ -2,6 +2,7 @@
 
 import argparse
 import asyncio
+import random
 import time
 
 import undetected_chromedriver as uc
@@ -13,6 +14,7 @@ from boosted_odds.boosted_odds_object.boosted_odds_object import \
 from boosted_odds.database.main_database import Database
 from boosted_odds.retriever.retriever_betclic import RetrieverBetclic
 from boosted_odds.retriever.retriever_psel import RetrieverPSEL
+from boosted_odds.retriever.retriever_unibet import RetrieverUnibet
 from boosted_odds.retriever.retriever_winamax import RetrieverWinamax
 from boosted_odds.telegram_bot.main_telegram import TelegramBot
 from utils.human_behavior import HumanBehavior
@@ -42,22 +44,41 @@ class MainBoostedOdds():
         self.database = None
         self._initiate(config_path, env_path)
 
-    def _initiate(self, config_path : str, env_path : str) -> None:
+    def _initiate(self, config_path: str, env_path: str) -> None:
         """
         Initialize the main class. 
         Load the configuration and environment files and create the driver.
         """
         self.config = load_config(config_path, env_path)
-        self.class_creation_list = {"winamax" : [RetrieverWinamax, BettorWinamax], "PSEL" : [RetrieverPSEL], "betclic": [RetrieverBetclic]}
+        self.class_creation_list = {"winamax" : [RetrieverWinamax, BettorWinamax], "PSEL" : [RetrieverPSEL], "betclic": [RetrieverBetclic], "unibet" : [RetrieverUnibet]}
 
-        # Driver 
-        options = uc.ChromeOptions()  
-        options.add_argument(f"--headless={self.config['BO']['headless']}") 
-        options.add_argument(f"--user-agent={self.config['BO']['user_agent']}")
-        options.add_argument("--use_subprocess=False")
-        options.add_argument("--no-sandbox")  
-        options.add_argument("--disable-dev-shm-usage")  
-        options.add_argument("--remote-debugging-port=9222")  
+        # Driver setup
+        options = uc.ChromeOptions()
+
+        if not self.config['BO']['headless']:  # Ensure headless is False
+            print("Debug Mode: Headless Disabled")
+            options.add_argument("--disable-blink-features=AutomationControlled")  # Prevent detection
+            options.add_argument("--disable-gpu")
+            options.add_argument("--force-device-scale-factor=1")
+        else:
+            options.add_argument("--headless=new")  # Use "new" for better compatibility
+
+        selected_user_agent = random.choice(self.config['BO']['user_agents'])
+        options.add_argument(f"user-agent={selected_user_agent}")
+        options.add_argument("--use_subprocess=True")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--start-maximized")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--remote-debugging-port=9222")
+
+        # Anti-detection improvements
+        options.add_argument("--disable-blink-features=AutomationControlled")  # Prevent bot detection
+        options.add_argument("--disable-infobars")  # Disable "Chrome is being controlled by automated software"
+        options.add_argument("--disable-extensions")  # Disable extensions
+        options.add_argument("--disable-software-rasterizer")  # Disabling the software renderer
+        options.add_argument("--disable-features=VizDisplayCompositor")  # Prevents UI blocking
+
+        # Initialize Chrome
         self.driver = uc.Chrome(options=options)
 
         # The rest

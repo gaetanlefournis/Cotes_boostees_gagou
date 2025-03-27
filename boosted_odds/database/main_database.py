@@ -39,7 +39,7 @@ class Database():
         """
         Insert data in the database
         """
-        if table == "winamax" or table == "PSEL":
+        if table in ["winamax", "PSEL", "unibet", "betclic"]:
             query = text(f"INSERT INTO {table} (sport, title, sub_title, old_odd, odd, golden, result, date) VALUES (:sport, :title, :sub_title, :old_odd, :odd, :golden, 'En cours', :date)")
             self.session.execute(query, {"sport": data["sport"], "title": data["title"], "sub_title": data["sub_title"], "old_odd": data["old_odd"], "odd": data["odd"], "golden": data["golden"], "date": data["date"]})
         else:
@@ -51,7 +51,7 @@ class Database():
         """
         Check if the data is already in the database
         """
-        if table == "winamax" or table == "PSEL":
+        if table in ["winamax", "PSEL", "unibet", "betclic"]:
             query = text(f"SELECT * FROM {table} WHERE sport = :sport AND title = :title AND sub_title = :sub_title AND golden = :golden")
             result = self.session.execute(query, {"sport": data["sport"], "title": data["title"], "sub_title": data["sub_title"], "golden": data["golden"]})
         else:

@@ -166,9 +166,13 @@ def bet_on_Winamax(driver: uc.Chrome, betting_stake: float) -> None:
         return False
 
 def find_button_by_text(driver : Chrome, text: str) -> WebElement:
-        """Find a button by its text"""
+    """Find a button by its text"""
+
+    try:
         buttons = driver.find_elements(By.TAG_NAME, "button")
         for button in buttons:
             if button.text.lower() == text.lower():
                 return button
+        return None
+    except:
         return None
