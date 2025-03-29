@@ -6,12 +6,13 @@ from utils.tools import load_config
 
 
 def main(config_path, env_path):
+    """Main function to add the sport in the table : 'table_name'"""
     config = load_config(config_path, env_path)
     if config["SPECIFIC"]["add_sport"] == "manual":
         add_sport = AddSportsManual(**config["DB_VPS"], table_name=config["SPECIFIC"]["table_name"])
         add_sport()
     elif config["SPECIFIC"]["add_sport"] == "telegram":
-        add_sport = AddSportsTelegram(**config["DB_VPS"], **config["BO"]["parameters"], table_name=config["SPECIFIC"]["table_name"])
+        add_sport = AddSportsTelegram(**config["DB_VPS"], table_name=config["SPECIFIC"]["table_name"])
         add_sport()
     else :
         raise ValueError("The way of adding sports is not recognized. Please check the config file.")

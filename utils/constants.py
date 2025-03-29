@@ -3,6 +3,7 @@
 # URL of the retrieving website
 URL_WEPARI_WINAMAX = "https://wepari.fr/indexh.html"
 URL_WEPARI_PSEL = "https://wepari.fr/indexpsel.html"
+URL_BET_BOOSTED_BETCLIC = "https://app.mybetboost.com/betclic"
 URL_BOOSTED_ODDS_WINAMAX = "https://www.winamax.fr/paris-sportifs/sports/100000"
 URL_BOOSTED_ODDS_PSEL = "https://www.enligne.parionssport.fdj.fr/cotes-boostees"
 URL_BOOSTED_ODDS_BETCLIC = "https://www.betclic.fr/"

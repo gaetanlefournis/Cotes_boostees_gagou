@@ -31,7 +31,7 @@ class Database():
         Connect to the database
         """
         self.engine = create_engine(
-            f"mysql+mysqlconnector://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_database}"
+          f"mysql+mysqlconnector://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_database}"
         )
         self.session = sessionmaker(bind=self.engine)()
 
