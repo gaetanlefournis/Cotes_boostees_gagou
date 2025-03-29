@@ -116,7 +116,7 @@ class RetrieverUnibet(AbstractRetriever):
         if len(text) == 7:
             heure, title, sub_title, old_odd, odd = (
                 text[2],
-                text[0] + text[3],
+                text[0] + " " + text[3],
                 text[4],
                 text[5],
                 text[6],
@@ -124,8 +124,8 @@ class RetrieverUnibet(AbstractRetriever):
         elif len(text) == 8:
             heure, title, sub_title, old_odd, odd = (
                 text[2],
-                text[0] + text[3],
-                text[4] + text[5],
+                text[0] + " " + text[3],
+                text[4] + " " + text[5],
                 text[6],
                 text[7],
             )

@@ -9,7 +9,7 @@ def main(config_path : str, env_path : str) -> None:
     Main function to process the analyzing of boosted odds database
     """
     config = load_config(config_path, env_path)
-    for site in ["winamax", "PSEL"]:
+    for site in ["winamax", "PSEL", "betclic", "unibet"]:
         for metal in config["SPECIFIC"]["metals"]:
             analyze = AnalyzeDataDB1(**config["DB_VPS"], metal=metal, table=site)
             dico_result = analyze.analyze_results()

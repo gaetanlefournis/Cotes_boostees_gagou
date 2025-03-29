@@ -44,8 +44,8 @@ class BettorWinamax(AbstractBettor):
         """Connect to the website with the username and password"""
         print("Trying to connect to Winamax")
         self.connector.run()
-        is_connected = self.connector._is_connected()
-        return is_connected
+        # is_connected = self.connector._is_connected()
+        # return is_connected
     
     def _bet_on_boosted_odd(self, boosted_odd : BoostedOddsObject) -> None:
         """Bet on the bet"""

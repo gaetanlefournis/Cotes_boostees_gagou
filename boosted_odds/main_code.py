@@ -67,6 +67,7 @@ class MainBoostedOdds():
         options.add_argument(f"user-agent={selected_user_agent}")
         options.add_argument("--use_subprocess=True")
         options.add_argument("--no-sandbox")
+        options.add_argument("--incognito")
         options.add_argument("--start-maximized")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--remote-debugging-port=9222")
@@ -80,6 +81,7 @@ class MainBoostedOdds():
 
         # Initialize Chrome
         self.driver = uc.Chrome(options=options)
+        time.sleep(3)
 
         # The rest
         self.human_behavior = HumanBehavior(self.driver)
@@ -155,7 +157,7 @@ class MainBoostedOdds():
         
         try :
             list_boosted_odds = asyncio.run(self.main_retrieve())
-            self.main_bet(list_boosted_odds)
+            #self.main_bet(list_boosted_odds)
         except Exception as e:
             print(f"There was a problem in the boosted_odds program : {e}")
         finally:
