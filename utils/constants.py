@@ -113,7 +113,7 @@ CONDITIONS_ON_SPORTS = {
             {
            "Football": [2.4, 19],
            "Basketball": [2.9, 20],
-           "Tennis": [2.6, 16],
+           "Tennis": [2.5, 15],
            "Rugby à XIII": [3.4, 17],
             },
         "gold" : 
@@ -128,6 +128,9 @@ CONDITIONS_ON_SPORTS = {
             {},
         "gold":
             {},
+           "Football": [2.1, 24],
+           "Tennis": [2.9, 22],
+           "MMA": [5.9, 24],
         },
     "unibet":
         {"silver":
