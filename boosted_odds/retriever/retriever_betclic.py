@@ -106,6 +106,9 @@ class RetrieverBetclic(AbstractRetriever):
     def _get_infos_from_boosted_odd(
         self,
         boosted_odd: WebElement,
+        title: str,
+        sport: str,
+        date: str,
     ):
         """Get the infos from a boosted odd
 
@@ -115,54 +118,18 @@ class RetrieverBetclic(AbstractRetriever):
             dict[str, str, str, str, str, bool]: infos of the boosted odd
         """
         text = boosted_odd.text.split("\n")
-        if len(text) == 6:
-            title, heure, sub_title, odd = (
-                text[2] + " " + text[0],
-                text[1],
-                text[3] + " " + text[4],
-                text[5],
-            )
-        elif len(text) == 7:
-            title, heure, sub_title, odd = (
-                text[2] + " " + text[0],
-                text[1],
-                text[4] + " " + text[5],
-                text[6],
-            )
-        elif len(text) == 9:
-            title, heure, sub_title, odd = (
-                text[2] + text[3] + text[4] + " " + text[0],
-                text[1],
-                text[5] + " " + text[7],
-                text[8],
-            )
-        elif len(text) == 10:
-            title, heure, sub_title, odd = (
-                text[3] + text[4] + text[5] + " " + text[0],
-                text[1],
-                text[6] + " " + text[8],
-                text[9],
-            )
+        print(text)
+        if len(text) == 5:
+            sub_title = text[1]
+            old_odd = text[3]
+            odd = text[4]
         else:
-            title, heure, sub_title, odd = (
-                text[2] + " " + text [3] + " " + text[4] + " " + text[0],
-                text[1],
-                text[5] + " " + text[6],
-                text[7],
-            )
-
-        sport = boosted_odd.find_element(
-            By.XPATH, ".//a//div[1]//span//span[1]"
-        ).get_attribute("class")
+            raise Exception
         
-        
-        classes_sport = sport.split(" ")
-        for class_sport in classes_sport:
-            if class_sport in self._sport_dict:
-                sport = self._sport_dict[class_sport]
-                break
-        jour = heure.split()[0]
-        heure = heure.split()[-1]
+        title = title
+        sport = sport
+        jour = date.split()[0]
+        heure = date.split()[-1]
         if "Demain" in jour:
             date = datetime.datetime.now() + datetime.timedelta(days=1)
         elif "Hier" in jour:
@@ -171,12 +138,6 @@ class RetrieverBetclic(AbstractRetriever):
             date = datetime.datetime.now()
         heure = datetime.datetime.strptime(heure.split()[-1], "%Hh%M")
 
-        def extract_number_before_arrow(text):
-            pattern = r'(\d+(?:[.,]\d+)?)\s*(?=->|→)'
-            match = re.search(pattern, text)
-            return  match.group(1) if match else None
-
-        old_odd = extract_number_before_arrow(sub_title)
         old_odd = Decimal(old_odd.replace(",", ".")) if old_odd != "" or None else None
         odd = Decimal(odd.replace(",", ".")) if odd != "" or None else None
         date = date.replace(hour=heure.hour, minute=heure.minute)
@@ -218,14 +179,9 @@ class RetrieverBetclic(AbstractRetriever):
                 )
             )
             time.sleep(1)
-            wrappers = self.driver.find_elements(
+            important_matches = self.driver.find_elements(
                 By.XPATH,
-                "//ul[@class='carousel_list']",
-            )
-            
-            important_matches = wrappers[0].find_elements(
-                By.XPATH,
-                "./*",
+                "//ul[@class='carousel_list']//sports-events-event-card",
             )[1:]
             
         except Exception as _:
@@ -233,22 +189,51 @@ class RetrieverBetclic(AbstractRetriever):
             important_matches = []
 
         for important_match in important_matches:
-            # Click on the match
-            important_match.click()
+            try :
+                # Retrieve some info
+                main_info = important_match.find_element(
+                        By.XPATH,
+                        ".//a//div//div//scoreboards-scoreboard",
+                    ).get_attribute("innerText").split("\n")
 
-            # find the boosted odds
-            try:
-                boosted_odds = self.driver.find_elements(
-                    By.TAG_NAME,
-                    "sports-boosted-odds-market-card",
-                )
-                for boosted_odd in boosted_odds:
-                    # Get the infos of the boosted odd
-                    bet = self._get_infos_from_boosted_odd(boosted_odd)
-                    self.list_boosted_odds_objects.append(BoostedOddsObject(boosted_odd, **bet))
-            except:
-                print("There is no boosted odds")
-                pass
+                title = main_info[0] + " - " + main_info[2]
+                date = main_info[1]
+
+                # find the sport
+                class_sport = important_match.find_element(
+                        By.XPATH,
+                        ".//a//div//div//sports-events-event-info//bcdk-breadcrumb//div//bcdk-breadcrumb-item[1]//span[1]",
+                    ).get_attribute("class").split(" ")[-1]
+                print(class_sport)
+                print(self._sport_dict)
+                
+                if class_sport in self._sport_dict:
+                    sport = self._sport_dict[class_sport]
+                    break
+                
+                print(sport)
+                print(title)
+                print(date)
+
+                # Click on the match
+                important_match.click()
+                time.sleep(3)
+
+                # find the boosted odds
+                try:
+                    boosted_odds = self.driver.find_elements(
+                        By.TAG_NAME,
+                        "sports-boosted-odds-market-card",
+                    )
+                    for boosted_odd in boosted_odds:
+                        # Get the infos of the boosted odd
+                        bet = self._get_infos_from_boosted_odd(boosted_odd, None, None, None)
+                        self.list_boosted_odds_objects.append(BoostedOddsObject(boosted_odd, **bet))
+                except:
+                    print("There is no boosted odds")
+                    pass
+            except Exception as e:
+                print(f"error retrieving boosted_odds : {e}")
             
         return self.list_boosted_odds_objects
 
