@@ -204,16 +204,10 @@ class RetrieverBetclic(AbstractRetriever):
                         By.XPATH,
                         ".//a//div//div//sports-events-event-info//bcdk-breadcrumb//div//bcdk-breadcrumb-item[1]//span[1]",
                     ).get_attribute("class").split(" ")[-1]
-                print(class_sport)
-                print(self._sport_dict)
                 
                 if class_sport in self._sport_dict:
                     sport = self._sport_dict[class_sport]
                     break
-                
-                print(sport)
-                print(title)
-                print(date)
 
                 # Click on the match
                 important_match.click()
