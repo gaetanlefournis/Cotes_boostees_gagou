@@ -56,26 +56,27 @@ class FinalStats():
     def update_db(self):
         """Update the database thanks to the other tables and the results of the bets."""
         for _, row in self.data.iterrows():
-            website = row["website"]
+            if row["result"] is None:
+                website = row["website"]
 
-            # Search for the odd in the table of that website and update the result
-            query = text(f"SELECT * FROM {website} WHERE sport = :sport AND title = :title AND sub_title = :sub_title AND result = NULL")
-            boosted_odd = self.session.execute(query, {"sport": row["sport"], "title": "Cote Boostée : " + row["title"], "sub_title": row["sub_title"]})
+                # Search for the odd in the table of that website and update the result
+                query = text(f"SELECT * FROM {website} WHERE sport = :sport AND title = :title AND result IS NOT NULL")
+                boosted_odd = self.session.execute(query, {"sport": row["sport"], "title": row["title"]})
 
-            # Fetch the result(s) from boosted_odd (this returns a Result object)
-            result = boosted_odd.fetchone()  # Use fetchone() to get a single row
-            if result:
-
-                # Update the general database with the result
-                query = text(f"UPDATE {self.db_table} SET result = :result WHERE website = :website AND sport = :sport AND title = :title AND sub_title = :sub_title")
-                self.session.execute(query, {
-                    "result": result[7],  # Access the data using dictionary-style access
-                    "website": website,
-                    "sport": row["sport"],
-                    "title": row["title"],
-                    "sub_title": row["sub_title"]
-                })
-                self.session.commit()
+                # Fetch the result(s) from boosted_odd (this returns a Result object)
+                result = boosted_odd.fetchone()  # Use fetchone() to get a single row
+                if result:
+                    print(result)
+                    # Update the general database with the result
+                    query = text(f"UPDATE {self.db_table} SET result = :result WHERE website = :website AND sport = :sport AND title = :title AND sub_title = :sub_title")
+                    self.session.execute(query, {
+                        "result": result[7],  # Access the data using dictionary-style access
+                        "website": website,
+                        "sport": row["sport"],
+                        "title": row["title"],
+                        "sub_title": row["sub_title"]
+                    })
+                    self.session.commit()
                
     def close_engine(self):
         """ Close the engine """

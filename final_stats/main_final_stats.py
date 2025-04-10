@@ -1,4 +1,5 @@
 import argparse
+import time
 
 from final_stats.final_stats import FinalStats
 from utils.tools import load_config
@@ -12,10 +13,11 @@ def main(config_path : str, env_path : str) -> None:
     try:
         analyze = FinalStats(**config["DB_VPS"])
         analyze.update_db()
+        time.sleep(5)
         total_amount_won_wina, total_amount_won_psel = analyze.analyze_results()
-        print(total_amount_won_wina, total_amount_won_psel)
-    # except Exception as e:
-    #     print(e)
+        print("total winamax : " + str(total_amount_won_wina), "total PSEL : " + str(total_amount_won_psel))
+    except Exception as e:
+        print(e)
     finally:
         analyze.close_engine()
 
