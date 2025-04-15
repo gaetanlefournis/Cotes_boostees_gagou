@@ -41,16 +41,21 @@ class FinalStats():
         total_amount_PSEL = 0
         total_amount_winamax = 0
         for _, row in self.data.iterrows():
-            if row['result'].lower() == 'gagné':
-                amount = self.dico_websites[row['website']][row['golden']] * (float(row['odd']) - 1)
-            elif row['result'].lower() == 'perdu':
-                amount = -self.dico_websites[row['website']][row['golden']]
-            else:
-                amount = 0
-            if row['website'] == 'winamax':
-                total_amount_winamax += amount
-            else:
-                total_amount_PSEL += amount
+            try:
+                if row['result'].lower() == 'gagné':
+                    amount = self.dico_websites[row['website']][row['golden']] * (float(row['odd']) - 1)
+                elif row['result'].lower() == 'perdu':
+                    amount = -self.dico_websites[row['website']][row['golden']]
+                else:
+                    amount = 0
+                if row['website'] == 'winamax':
+                    total_amount_winamax += amount
+                else:
+                    total_amount_PSEL += amount
+            except Exception as e:
+                print(f"Error processing row: {row}")
+                print(e)
+                continue
         return total_amount_winamax, total_amount_PSEL
     
     def update_db(self):
