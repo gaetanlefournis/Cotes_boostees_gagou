@@ -136,7 +136,7 @@ class RetrieverBetclic(AbstractRetriever):
             date = datetime.datetime.now() - datetime.timedelta(days=1)
         else:
             date = datetime.datetime.now()
-        heure = datetime.datetime.strptime(heure.split()[-1], "%Hh%M")
+        heure = datetime.datetime.strptime(heure.split()[-1], "%H:%M")
 
         old_odd = Decimal(old_odd.replace(",", ".")) if old_odd != "" or None else None
         odd = Decimal(odd.replace(",", ".")) if odd != "" or None else None
@@ -149,7 +149,7 @@ class RetrieverBetclic(AbstractRetriever):
             golden = "silver"
 
         bet = {
-            "website": "PSEL",
+            "website": self.WEBSITE,
             "title" : title,
             "sub_title" : sub_title,
             "old_odd" : old_odd,
@@ -182,13 +182,14 @@ class RetrieverBetclic(AbstractRetriever):
             important_matches = self.driver.find_elements(
                 By.XPATH,
                 "//ul[@class='carousel_list']//sports-events-event-card",
-            )[1:]
+            )
             
         except Exception as _:
             print("Error while retrieving the boosted odds")
             important_matches = []
 
         for important_match in important_matches:
+            print("oui")
             try :
                 # Retrieve some info
                 main_info = important_match.find_element(
@@ -207,11 +208,10 @@ class RetrieverBetclic(AbstractRetriever):
                 
                 if class_sport in self._sport_dict:
                     sport = self._sport_dict[class_sport]
-                    break
 
                 # Click on the match
                 important_match.click()
-                time.sleep(3)
+                time.sleep(4)
 
                 # find the boosted odds
                 try:
@@ -221,10 +221,11 @@ class RetrieverBetclic(AbstractRetriever):
                     )
                     for boosted_odd in boosted_odds:
                         # Get the infos of the boosted odd
-                        bet = self._get_infos_from_boosted_odd(boosted_odd, None, None, None)
+                        bet = self._get_infos_from_boosted_odd(boosted_odd, title, sport, date)
                         self.list_boosted_odds_objects.append(BoostedOddsObject(boosted_odd, **bet))
-                except:
-                    print("There is no boosted odds")
+                except Exception as e:
+                    print("Error while retrieving the boosted odds")
+                    print(e)
                     pass
             except Exception as e:
                 print(f"error retrieving boosted_odds : {e}")
