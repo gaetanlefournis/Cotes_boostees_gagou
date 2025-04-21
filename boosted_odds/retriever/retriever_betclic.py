@@ -26,6 +26,7 @@ class RetrieverBetclic(AbstractRetriever):
         self.WEBSITE = "betclic"
         self.url_connexion = URL_BOOSTED_ODDS_BETCLIC
         self.conditions_on_sports = CONDITIONS_ON_SPORTS[self.WEBSITE]
+        self.SIZE_CAROUSEL = 2
         self._sport_dict = None
         self.final_list_bet = None
         self.list_boosted_odds_objects = []
@@ -118,7 +119,6 @@ class RetrieverBetclic(AbstractRetriever):
             dict[str, str, str, str, str, bool]: infos of the boosted odd
         """
         text = boosted_odd.text.split("\n")
-        print(text)
         if len(text) == 5:
             sub_title = text[1]
             old_odd = text[3]
@@ -168,29 +168,31 @@ class RetrieverBetclic(AbstractRetriever):
         """
         # Get sport classes
         self._get_sports_classes()
-        # Find the boosted odds on the page
-        try:
-            WebDriverWait(self.driver, 10).until(
-                EC.presence_of_all_elements_located(
-                    (
-                        By.XPATH,
-                        "//ul[@class='carousel_list']",
+
+        # Find the boosted odds on the page, one by one
+        for i in range(self.SIZE_CAROUSEL):
+            try:
+                WebDriverWait(self.driver, 10).until(
+                    EC.presence_of_all_elements_located(
+                        (
+                            By.XPATH,
+                            "//ul[@class='carousel_list']",
+                        )
                     )
                 )
-            )
-            time.sleep(1)
-            important_matches = self.driver.find_elements(
-                By.XPATH,
-                "//ul[@class='carousel_list']//sports-events-event-card",
-            )
+                time.sleep(1)
+                important_matches = self.driver.find_elements(
+                    By.XPATH,
+                    "//ul[@class='carousel_list']//sports-events-event-card",
+                )
             
-        except Exception as _:
-            print("Error while retrieving the boosted odds")
-            important_matches = []
+            except Exception as _:
+                print("Error while retrieving the boosted odds")
+                important_matches = []
 
-        for important_match in important_matches:
-            print("oui")
             try :
+                important_match = important_matches[i]
+
                 # Retrieve some info
                 main_info = important_match.find_element(
                         By.XPATH,
@@ -223,9 +225,8 @@ class RetrieverBetclic(AbstractRetriever):
                         # Get the infos of the boosted odd
                         bet = self._get_infos_from_boosted_odd(boosted_odd, title, sport, date)
                         self.list_boosted_odds_objects.append(BoostedOddsObject(boosted_odd, **bet))
-                except Exception as e:
+                except Exception as _:
                     print("Error while retrieving the boosted odds")
-                    print(e)
                     pass
             except Exception as e:
                 print(f"error retrieving boosted_odds : {e}")

@@ -5,6 +5,7 @@ import undetected_chromedriver as uc
 from boosted_odds.boosted_odds_object.boosted_odds_object import \
     BoostedOddsObject
 from boosted_odds.connection.connection_winamax import ConnectionWinamax
+from boosted_odds.retriever.retriever_winamax import RetrieverWinamax
 from utils.abstract import AbstractBettor
 from utils.constants import URL_BOOSTED_ODDS_WINAMAX
 from utils.human_behavior import HumanBehavior
@@ -35,10 +36,12 @@ class BettorWinamax(AbstractBettor):
         self.amount_golden = amount_golden
         self.amount_silver = amount_silver
         self.connection_object = None
+        self.retriever = None
 
     def _initiate(self) -> None:
         """Instantiate the Winamax Connection Object"""
         self.connector = ConnectionWinamax(self.driver, self.connection_username, self.connection_password, self.connection_day, self.connection_month, self.connection_year)
+        self.retriever = RetrieverWinamax(self.driver)
 
     def _connection_to_website(self) -> None:
         """Connect to the website with the username and password"""
@@ -73,9 +76,23 @@ class BettorWinamax(AbstractBettor):
             self._connection_to_website()
             # Once connected, we go to the boosted odds url
             self.driver.get(URL_BOOSTED_ODDS_WINAMAX)
-            for boosted_odd in list_boosted_odds:
-                betted = self._bet_on_boosted_odd(boosted_odd)
-                if not betted : 
-                    print(f"couldn't bet on {boosted_odd.title} - {boosted_odd.sub_title}. Maybe the odd is not available anymore on {boosted_odd.website}")
+
+            # Find again the boosted odds that are interesting
+            _, best_odds = self.retriever.run()
+            for boosted_odd in best_odds:
+                print(best_odds)
+                # Check if we have to bet on it
+                def is_in_list_to_bet(boosted_odd : BoostedOddsObject) -> bool:
+                    for bet in list_boosted_odds:
+                        if boosted_odd.title == bet.title and boosted_odd.sub_title == bet.sub_title:
+                            return True
+                    return False
+                if not is_in_list_to_bet(boosted_odd) :
+                    print(f"we don't have to bet on {boosted_odd.title} - {boosted_odd.sub_title}")
+                    continue
+                else:
+                    betted = self._bet_on_boosted_odd(boosted_odd)
+                    if not betted : 
+                        print(f"couldn't bet on {boosted_odd.title} - {boosted_odd.sub_title}. Maybe the odd is not available anymore on {boosted_odd.website}")
         except Exception as e:
             print(f"There was a problem while betting on {boosted_odd.title} - {boosted_odd.sub_title} : {e}")
