@@ -93,10 +93,9 @@ CONDITIONS_ON_SPORTS = {
            "Biathlon": [5.4, 14],
            "Football américain": [4.9, 16],
            "Formule 1": [4.4, 12],
-           "Handball": [2.5, 7],
+           "Handball": [3.2, 17],
            "Hockey sur glace": [2.7, 14],
-           "Rugby à XV": [5.4, 22],
-           "Rugby à XIII": [2.6, 12],
+           "Rugby à XIII": [2.6, 13],
            "Volley-ball": [3.5, 13],
             },
         "gold" : 
@@ -138,7 +137,7 @@ CONDITIONS_ON_SPORTS = {
     "unibet":
         {"silver":
             {
-            "Basketball": [3.0, 14],
+           "Basketball": [3.0, 12],
             },
         "gold":
             {
