@@ -137,7 +137,7 @@ CONDITIONS_ON_SPORTS = {
     "unibet":
         {"silver":
             {
-           "Basketball": [3.0, 12],
+            # blank
             },
         "gold":
             {
