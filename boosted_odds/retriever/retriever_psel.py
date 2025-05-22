@@ -137,10 +137,17 @@ class RetrieverPSEL(AbstractRetriever):
             )
         elif len(text) == 10:
             title, heure, sub_title, odd = (
-                text[3] + text[4] + text[5] + " " + text[0],
-                text[1],
+                text[3] + text[4] + text[5] + " " + text[1],
+                text[2],
                 text[6] + " " + text[8],
                 text[9],
+            )
+        elif len(text) == 11:
+            title, heure, sub_title, odd = (
+                text[4] + text[5] + text[6] + " " + text[1],
+                text[2],
+                text[7] + " " + text[9],
+                text[10],
             )
         else:
             title, heure, sub_title, odd = (

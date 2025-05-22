@@ -97,10 +97,14 @@ class MainBoostedOdds():
         # First step : retrieve the boosted odds of every website
         for site in self.class_creation_list:
             print(f"\nRetrieve odds for {site} :")
-            retriever = self.class_creation_list[site][0](driver = self.driver)
-            all_boosted_odds, good_boosted_odds = retriever.run()
-            final_good_boosted_odds += good_boosted_odds
-            final_all_boosted_odds += all_boosted_odds
+            try : 
+                retriever = self.class_creation_list[site][0](driver = self.driver)
+                all_boosted_odds, good_boosted_odds = retriever.run()
+                final_good_boosted_odds += good_boosted_odds
+                final_all_boosted_odds += all_boosted_odds
+            except Exception as e:
+                print(f"Error while retrieving the boosted odds for {site} : {e}")
+                continue
         
         print(f"length all boosted odds : {len(final_all_boosted_odds)}")
 
