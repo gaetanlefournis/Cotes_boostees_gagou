@@ -89,7 +89,7 @@ CONDITIONS_ON_SPORTS = {
            "Football": [2.8, 21],
            "Basketball": [2.5, 12],
            "Tennis": [3.7, 22],
-           "Baseball": [2.5, 13],
+           "Baseball": [2.4, 13],
            "Biathlon": [5.4, 14],
            "Football américain": [4.9, 16],
            "Formule 1": [4.4, 12],

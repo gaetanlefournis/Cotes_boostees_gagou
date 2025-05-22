@@ -24,7 +24,7 @@ class FinalStats():
         self.data = None
         self.engine = None
         self.session = None
-        self.dico_websites = {"winamax" : {"gold" : 10, "silver" : 25}, "PSEL" : {"gold" : 10, "silver" : 25}}
+        self.dico_websites = {"winamax" : {"gold" : 10, "silver" : 25}, "PSEL" : {"gold" : 10, "silver" : 25}, "unibet" : {"gold" : 10, "silver" : 25}}
         self._instantiate()
 
     def _instantiate(self):
@@ -40,6 +40,7 @@ class FinalStats():
         """
         total_amount_PSEL = 0
         total_amount_winamax = 0
+        total_amount_unibet = 0
         for _, row in self.data.iterrows():
             try:
                 if row['result'].lower() == 'gagné':
@@ -50,13 +51,15 @@ class FinalStats():
                     amount = 0
                 if row['website'] == 'winamax':
                     total_amount_winamax += amount
-                else:
+                elif row['website'] == 'PSEL':
                     total_amount_PSEL += amount
+                else:
+                    total_amount_unibet += amount
             except Exception as e:
                 print(f"Error processing row: {row}")
                 print(e)
                 continue
-        return total_amount_winamax, total_amount_PSEL
+        return total_amount_winamax, total_amount_PSEL, total_amount_unibet
     
     def update_db(self):
         """Update the database thanks to the other tables and the results of the bets."""

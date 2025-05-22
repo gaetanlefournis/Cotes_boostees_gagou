@@ -14,8 +14,8 @@ def main(config_path : str, env_path : str) -> None:
         analyze = FinalStats(**config["DB_VPS"])
         analyze.update_db()
         time.sleep(5)
-        total_amount_won_wina, total_amount_won_psel = analyze.analyze_results()
-        print("total winamax : " + str(total_amount_won_wina), "total PSEL : " + str(total_amount_won_psel))
+        total_amount_won_wina, total_amount_won_psel, total_amount_won_unibet = analyze.analyze_results()
+        print("total winamax : " + str(total_amount_won_wina), "total PSEL : " + str(total_amount_won_psel), "total unibet : " + str(total_amount_won_unibet))
     except Exception as e:
         print(e)
     finally:
