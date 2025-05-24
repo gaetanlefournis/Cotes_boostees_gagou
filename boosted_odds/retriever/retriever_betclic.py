@@ -124,8 +124,8 @@ class RetrieverBetclic(AbstractRetriever):
             old_odd = text[3]
             odd = text[4]
         else:
-            raise Exception
-        
+            raise Exception("Error while getting the boosted odd infos, text length is not 5")
+
         title = title
         sport = sport
         jour = date.split()[0]
@@ -221,7 +221,6 @@ class RetrieverBetclic(AbstractRetriever):
                 
                 if class_sport in self._sport_dict:
                     sport = self._sport_dict[class_sport]
-                print("sport: ", sport, "title: ", title, "date: ", date)
 
                 # Click on the match
                 important_match.click()

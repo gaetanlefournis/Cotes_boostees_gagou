@@ -129,9 +129,9 @@ CONDITIONS_ON_SPORTS = {
             },
         "gold":
             {
-           "Football": [2.0, 24],
-           "Tennis": [2.9, 22],
-           "MMA": [5.9, 24],
+            "Football": [5, 24],
+            "Tennis": [5, 22],
+            "MMA": [5.9, 24],
             },
         },
     "unibet":
@@ -141,7 +141,9 @@ CONDITIONS_ON_SPORTS = {
             },
         "gold":
             {
-            # blank
+            "Football": [5, 24],
+            "Tennis": [5, 22],
+            "MMA": [5.9, 24],
             },
         },
     }

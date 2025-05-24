@@ -182,7 +182,10 @@ class AnalyzeDataDB1():
             if 'CONDITIONS_ON_SPORTS' in line:
                 # Look for the corresponding section
                 for i in range(index + 1, len(content)):
-                    if f'"{self.db_table}"' in content[i]:
+                    ############################################
+                    # Careful, to remove when the db gets bigger
+                    ############################################
+                    if f'"{self.db_table}"' in content[i] and self.db_table not in ["unibet", "betclic"]:
                         # Look for the corresponding metal and replace everything in it
                         for j in range(i + 1, len(content)):
                             if f'"{self.metal}"' in content[j]:

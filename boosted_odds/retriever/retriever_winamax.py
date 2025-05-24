@@ -132,13 +132,23 @@ class RetrieverWinamax(AbstractRetriever):
         """
         # Split the text
         text = boosted_odd.get_attribute("innerText").split("\n")
-        heure, title, sub_title, old_odd, odd = (
-            text[0],
-            text[1],
-            text[2],
-            text[3],
-            text[4],
-        )
+        if len(text) == 5:
+            heure, title, sub_title, old_odd, odd = (
+                text[0],
+                text[1],
+                text[2],
+                text[3],
+                text[4],
+            )
+        elif len(text) == 4:
+            heure, title, sub_title, odd = (
+                text[0],
+                text[1],
+                text[2],
+                text[3],
+            )
+        else:
+            print("Error while getting the boosted odd infos, text length is not 4 or 5")
 
         # if data-testid = boosted-odds-countdown, then it's a countdown
         is_countdown = len(boosted_odd.find_elements(By.XPATH, "//*[@data-testid='boosted-odds-countdown']")) > 0
@@ -232,8 +242,12 @@ class RetrieverWinamax(AbstractRetriever):
 
         for boosted_odd in boosted_odds:
             # Get the infos of the boosted odd
-            bet = self._get_infos_from_boosted_odd(boosted_odd)
-            self.list_boosted_odds_objects.append(BoostedOddsObject(boosted_odd, **bet))
+            try:
+                bet = self._get_infos_from_boosted_odd(boosted_odd)
+                self.list_boosted_odds_objects.append(BoostedOddsObject(boosted_odd, **bet))
+            except Exception as e:
+                print(f"Error while getting info from boosted odd : {e}")
+                continue
                 
         return self.list_boosted_odds_objects
 
