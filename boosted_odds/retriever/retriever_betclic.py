@@ -99,6 +99,7 @@ class RetrieverBetclic(AbstractRetriever):
             for key, value in _sport_dict.items():
                 new_dict[value[2]] = key
             self._sport_dict = new_dict
+            print(self._sport_dict)
                 
         except Exception as e:
             print("Error while getting the sports classes")
@@ -119,6 +120,7 @@ class RetrieverBetclic(AbstractRetriever):
             dict[str, str, str, str, str, bool]: infos of the boosted odd
         """
         text = boosted_odd.text.split("\n")
+        print(text)
         if len(text) == 5:
             sub_title = text[1]
             old_odd = text[3]
@@ -171,6 +173,7 @@ class RetrieverBetclic(AbstractRetriever):
 
         # Find the boosted odds on the page, one by one
         for i in range(self.SIZE_CAROUSEL):
+            self._load_page()
             try:
                 WebDriverWait(self.driver, 10).until(
                     EC.presence_of_all_elements_located(
@@ -187,9 +190,20 @@ class RetrieverBetclic(AbstractRetriever):
                 )
             
             except Exception as _:
-                print("Error while retrieving the boosted odds")
+                print("Error while retrieving the boosted odds, finding important_matches")
                 important_matches = []
 
+            # Add the second most important matches
+            try:
+                important_matches_second = self.driver.find_elements(
+                    By.XPATH,
+                    "//div[@class='verticalScroller_list']//sports-events-event-card",
+                )[0:2]
+                important_matches += important_matches_second
+            except Exception as e:
+                print(f"Error while retrieving the boosted odds, finding second important_matches : {e}")
+                
+            print(important_matches)
             try :
                 important_match = important_matches[i]
 
@@ -198,18 +212,22 @@ class RetrieverBetclic(AbstractRetriever):
                         By.XPATH,
                         ".//a//div//div//scoreboards-scoreboard",
                     ).get_attribute("innerText").split("\n")
+                print(main_info)
 
                 title = main_info[0] + " - " + main_info[2]
                 date = main_info[1]
+                print(title, date)
 
                 # find the sport
                 class_sport = important_match.find_element(
                         By.XPATH,
                         ".//a//div//div//sports-events-event-info//bcdk-breadcrumb//div//bcdk-breadcrumb-item[1]//span[1]",
                     ).get_attribute("class").split(" ")[-1]
+                print(class_sport)
                 
                 if class_sport in self._sport_dict:
                     sport = self._sport_dict[class_sport]
+                print(sport)
 
                 # Click on the match
                 important_match.click()
@@ -221,6 +239,7 @@ class RetrieverBetclic(AbstractRetriever):
                         By.TAG_NAME,
                         "sports-boosted-odds-market-card",
                     )
+                    print(boosted_odds)
                     for boosted_odd in boosted_odds:
                         # Get the infos of the boosted odd
                         bet = self._get_infos_from_boosted_odd(boosted_odd, title, sport, date)
