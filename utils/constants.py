@@ -103,6 +103,7 @@ CONDITIONS_ON_SPORTS = {
            "Football": [4.9, 24],
            "Basketball": [4.9, 24],
            "Tennis": [3.2, 24],
+           "Formule 1": [2.7, 24],
            "Rugby à XV": [5.9, 24],
             }
         },
@@ -137,7 +138,7 @@ CONDITIONS_ON_SPORTS = {
     "unibet":
         {"silver":
             {
-            # blank
+            "Tennis": [5.9, 17]
             },
         "gold":
             {

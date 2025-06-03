@@ -44,5 +44,5 @@ if __name__ == "__main__":
 
     main(args.config_path, args.env_path)
 
-    # python3 analyze_data/main_analyze_data.py --config_path config/config_gagou.yaml --env_path config/.env.gagou
-    # python3 -m analyze_data.main_analyze_data --config_path config/config_gagou.yaml --env_path config/.env.gagou
+    # python3 analyze_data/main_analyze_data.py --config_path config/config.yaml --env_path config/.env.gagou
+    # python3 -m analyze_data.main_analyze_data --config_path config/config.yaml --env_path config/.env.gagou
