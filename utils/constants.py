@@ -94,10 +94,10 @@ CONDITIONS_ON_SPORTS = {
            "Biathlon": [5.4, 14],
            "Football américain": [4.9, 16],
            "Formule 1": [4.4, 12],
-           "Handball": [3.2, 17],
+           "Handball": [2.5, 7],
            "Hockey sur glace": [2.7, 14],
            "Rugby à XIII": [2.6, 13],
-           "Volley-ball": [3.5, 13],
+           "Volley-ball": [3.5, 14],
             },
         "gold" : 
             {
@@ -113,7 +113,7 @@ CONDITIONS_ON_SPORTS = {
         "silver" : 
             {
            "Football": [2.4, 19],
-           "Tennis": [2.5, 15],
+           "Tennis": [2.6, 16],
            "Rugby à XIII": [3.4, 17],
             },
         "gold" : 
@@ -132,18 +132,20 @@ CONDITIONS_ON_SPORTS = {
             {
             "Football": [5, 24],
             "Tennis": [5, 22],
+            "Rugby à XV": [5.9, 24],
             "MMA": [5.9, 24],
             },
         },
     "unibet":
         {"silver":
             {
-            "Tennis": [5.9, 17]
+            "Tennis": [3.4, 17]
             },
         "gold":
             {
             "Football": [5, 24],
             "Tennis": [5, 22],
+            "Rugby à XV": [5.9, 24],
             "MMA": [5.9, 24],
             },
         },
