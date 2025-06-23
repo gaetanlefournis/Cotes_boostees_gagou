@@ -185,13 +185,23 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    while True:
+    max_retries = 10
+    retry_delay = 5
+    attempts = 0
+
+    while attempts < max_retries:
         try:
             automate = MainBoostedOdds(args.config_path, args.env_path)
             automate.run()
             break
         except Exception as e:
-            print(f"An error occurred while running the main code: {e}")
-            print("Retrying...")
+            attempts += 1
+            print(f"Attempt {attempts} failed: {e}")
+            if attempts < max_retries:
+                print(f"Retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)
+            else:
+                print("Max retries reached. Exiting.")
+                raise 
 
     # python3 boosted_odds/main_code.py --config_path config/config.yaml --env_path config/.env.gagou 
