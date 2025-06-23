@@ -184,7 +184,14 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    automate = MainBoostedOdds(args.config_path, args.env_path)
-    automate.run()
+
+    while True:
+        try:
+            automate = MainBoostedOdds(args.config_path, args.env_path)
+            automate.run()
+            break
+        except Exception as e:
+            print(f"An error occurred while running the main code: {e}")
+            print("Retrying...")
 
     # python3 boosted_odds/main_code.py --config_path config/config.yaml --env_path config/.env.gagou 
