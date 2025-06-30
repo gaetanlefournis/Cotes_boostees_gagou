@@ -1,3 +1,4 @@
+import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
@@ -33,6 +34,17 @@ class Database():
           f"mysql+mysqlconnector://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_database}"
         )
         self.session = sessionmaker(bind=self.engine)()
+
+    def retrieve_all(self, table : str) -> pd.DataFrame:
+        """
+        Retrieve all data from the database
+        """
+        query = text(f"SELECT * FROM {table}")
+        result = self.session.execute(query)
+        data = result.fetchall()
+        columns = result.keys()
+        df = pd.DataFrame(data, columns=columns)
+        return df
 
     def insert(self, data : dict, table : str) -> None:
         """

@@ -1,3 +1,6 @@
+from ai_model.models.model import (AttentionNN, DeepResNet, LogisticRegression,
+                                   SimpleNN)
+
 # Description: Constants used in the project
 
 # URL of the retrieving website
@@ -15,6 +18,8 @@ URL_CONNEXION_PSEL = "https://www.enligne.parionssport.fdj.fr/?prompt=true&from=
 # List of possible sports on Winamax
 LIST_SPORTS = ["Football", "Basketball", "Tennis", "Athlétisme", "Automobile", "Aviron", "Badminton", "Baseball", "Beach-volley", "Biathlon", "Boxe", "Canoé-kayak", "Cyclisme", "Escalade", "Escrime", "Equitation", "Football américain", "Football australien", "Formule 1", "Golf", "Haltérophilie", "Handball", "Hockey sur gazon", "Hockey sur glace", "JO", "Judo", "Lutte", "MMA", "Moto", "Natation", "Pentathlon moderne", "Pétanque", "Rugby à XV", "Rugby à XIII", "Rugby à 7", "Ski alpin", "Ski de fond", "Snooker", "Taekwondo", "Tennis de table", "Tir", "Tir à l arc", "Triathlon", "Voile", "Volley-ball", "Water-polo"]
 
+
+# Dictionary to map sports codes to their names (useful when manually entering sports)
 DICO_SPORTS = {
     'f': 'Football',
     'b': 'Basketball',
@@ -64,6 +69,8 @@ DICO_SPORTS = {
     'wp': 'Water-polo'
 }
 
+
+# Dictionary to map sports emojis to their names
 SPORTS_LOGO = {
     "⚽": "Football",
     "🏀": "Basketball",
@@ -79,6 +86,17 @@ SPORTS_LOGO = {
     "⛷️": "Ski alpin",
     "🚴‍♂️": "Cyclisme",
 }
+
+# List the different possible AI models to use
+LIST_MODELS = {
+    'logistic_regression': LogisticRegression,
+    'deep_resnet': DeepResNet,
+    'attention_nn': AttentionNN,
+    'simple_nn': SimpleNN,
+}
+
+# Base amount for calculating profit/loss in euros
+AMOUNT_BASE = 10
 
 
 CONDITIONS_ON_SPORTS = {

@@ -43,5 +43,5 @@ if __name__ == "__main__":
 
     main(args.config_path, args.env_path)
 
-    # python3 final_stats/main_final_stats.py --config_path config/config_gagou.yaml --env_path config/.env.gagou
-    # python3 -m final_stats.main_final_stats --config_path config/config_gagou.yaml --env_path config/.env.gagou
+    # python3 final_stats/main_final_stats.py --config_path config/config.yaml --env_path config/.env.gagou
+    # python3 -m final_stats.main_final_stats --config_path config/config.yaml --env_path config/.env.gagou

@@ -9,3 +9,6 @@ logs_main_code_boosted_odds.log
 *.json
 run_boosted_odds.log
 google-chrome-stable*
+mlruns/
+mlartifacts/
+final_model.pt
