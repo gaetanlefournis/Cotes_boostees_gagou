@@ -46,9 +46,9 @@ class Trainer:
         self.epochs = epochs
         self.learning_rate = learning_rate
         self.patience = patience
-        self.importance_ce_loss = coefficient_ce_loss
-        self.importance_profit_loss = coefficient_profit_loss
-        self.importance_small_preds_loss = coefficient_small_preds_loss
+        self.coefficient_ce_loss = coefficient_ce_loss
+        self.coefficient_profit_loss = coefficient_profit_loss
+        self.coefficient_small_preds_loss = coefficient_small_preds_loss
 
         # Send model to device
         self.model.to(self.device)
@@ -114,15 +114,15 @@ class Trainer:
 
         # Define the 2 loss functions
         self.loss_criterion = ProfitAwareLoss(
-            coeff_ce_loss=self.importance_ce_loss,
-            coeff_profit_loss=self.importance_profit_loss,
-            coeff_small_preds_loss=self.importance_small_preds_loss,
+            coeff_ce_loss=self.coefficient_ce_loss,
+            coeff_profit_loss=self.coefficient_profit_loss,
+            coeff_small_preds_loss=self.coefficient_small_preds_loss,
             weights=self.weights
         ).to(self.device)
         self.loss_criterion_validation = ProfitAwareLoss(
-            coeff_ce_loss=self.importance_ce_loss,
-            coeff_profit_loss=self.importance_profit_loss,
-            coeff_small_preds_loss=self.importance_small_preds_loss,
+            coeff_ce_loss=self.coefficient_ce_loss,
+            coeff_profit_loss=self.coefficient_profit_loss,
+            coeff_small_preds_loss=self.coefficient_small_preds_loss,
             weights=None  # No weights for validation loss
         ).to(self.device)
 
@@ -257,6 +257,8 @@ class Trainer:
             "epochs": self.epochs,
             "learning_rate": self.learning_rate,
             "patience": self.patience,
-            "importance_profit_loss": self.importance_profit_loss,
+            "coefficient_ce_loss": self.coefficient_ce_loss,
+            "coefficient_profit_loss": self.coefficient_profit_loss,
+            "coefficient_small_preds_loss": self.coefficient_small_preds_loss,
             "weights": self.weights.tolist() if self.weights is not None else None
         })

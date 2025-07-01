@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from utils.tools_ai_model import func_profit_loss
+from utils.tools_ai_model import func_profit_loss, func_small_preds_loss
 
 
 class ProfitAwareLoss(nn.Module):
@@ -40,30 +40,23 @@ class ProfitAwareLoss(nn.Module):
             ce_loss = F.cross_entropy(logits, labels, weight=self.weights)
         else:
             ce_loss = F.cross_entropy(logits, labels)
-
         ce_loss *= self.coeff_ce_loss
         
         # Add profit component
-        probs = torch.softmax(logits, dim=1)[:, 1]  # Class 1 probabilities
+        probs = torch.softmax(logits, dim=1)[:, 1]
         profit_loss = func_profit_loss(
             pred_probs=probs,
             labels=labels,
             batch_df_odds=batch_df_odds,
             amount_base=amount_base
         )
-
         profit_loss *= self.coeff_profit_loss
 
-        # Penalize when the number of predictions is too different from the number of labels
-        # This is to avoid models that predict too few positive cases and also to avoid models that predict too many positive cases
-        pred_sum = torch.sum(preds)
-        label_sum = torch.sum(labels)
-
-        # Avoid division by zero, add epsilon
-        eps = 1e-6
-        ratio = pred_sum / (label_sum + eps)
-        small_preds_loss = (1.0 - ratio).pow(2)
-
+        # Add penalty component
+        small_preds_loss = func_small_preds_loss(
+            preds=preds,
+            labels=labels
+        )
         small_preds_loss *= self.coeff_small_preds_loss
 
         return ce_loss + profit_loss + small_preds_loss

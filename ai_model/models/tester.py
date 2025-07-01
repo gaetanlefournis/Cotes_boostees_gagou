@@ -23,21 +23,21 @@ class Tester:
         model: object,
         mlflow_client: MLFlow,
         device: torch.device,
-        batch_size: int,
-        coefficient_ce_loss: float,
-        coefficient_profit_loss: float,
-        coefficient_small_preds_loss: float,
-        visualization_best_worst: bool,
+        test_batch_size: int,
+        test_coefficient_ce_loss: float,
+        test_coefficient_profit_loss: float,
+        test_coefficient_small_preds_loss: float,
+        test_visualization_best_worst: bool,
         **kwargs,
     ):
         self.model = model
         self.mlflow = mlflow_client
         self.device = device
-        self.batch_size = batch_size
-        self.importance_ce_loss = coefficient_ce_loss
-        self.importance_profit_loss = coefficient_profit_loss
-        self.importance_small_preds_loss = coefficient_small_preds_loss
-        self.visualization_best_worst = visualization_best_worst
+        self.test_batch_size = test_batch_size
+        self.test_coefficient_ce_loss = test_coefficient_ce_loss
+        self.test_coefficient_profit_loss = test_coefficient_profit_loss
+        self.test_coefficient_small_preds_loss = test_coefficient_small_preds_loss
+        self.test_visualization_best_worst = test_visualization_best_worst
         self.model.to(self.device)
 
         self.criterion_test = None
@@ -107,14 +107,14 @@ class Tester:
         test_df_loader: DataLoader,  # Changed from pd.DataFrame to DataLoader
         test_df: pd.DataFrame,
         prefix: str = "test"
-    ) -> None:
+    ) -> tuple[list, float]:
         """Enhanced testing method with proper DataFrame batch handling"""
         
         self.model.eval()
         self.criterion_test = ProfitAwareLoss(
-            coeff_ce_loss=self.importance_ce_loss,
-            coeff_profit_loss=self.importance_profit_loss,
-            coeff_small_preds_loss=self.importance_small_preds_loss,
+            coeff_ce_loss=self.test_coefficient_ce_loss,
+            coeff_profit_loss=self.test_coefficient_profit_loss,
+            coeff_small_preds_loss=self.test_coefficient_small_preds_loss,
             weights=None
         ).to(self.device)
 
@@ -131,7 +131,7 @@ class Tester:
             test_combined_iter = ((batch, None) for batch in test_loader)
 
         with torch.no_grad():
-            for (inputs, labels), df_batch in test_combined_iter:
+            for (inputs, labels), df_batch in tqdm(test_combined_iter):
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 batch_df_odds = df_batch[1] if df_batch is not None else None
 
@@ -145,11 +145,11 @@ class Tester:
                 all_preds.extend(preds.cpu().numpy())
                 all_labels.extend(labels.cpu().numpy())
                 all_probs.extend(probs[:, 1].cpu().numpy())
-                all_indices.extend(df_batch[0])  # Store original indices
+                all_indices.extend(df_batch[0])
 
         # Print how many golden samples are in the test set
         num_golden_samples = test_df[test_df['golden'] == 'gold'].shape[0]
-        print(f"Number of golden samples in the test set: {num_golden_samples}")
+
         # Plot the confusion matrix only for golden samples
         if num_golden_samples > 0:
             # Get indices of golden samples by resetting the index of the dataframe
@@ -226,7 +226,7 @@ class Tester:
         self._log_confusion_matrix(all_labels, all_preds, prefix)
         self._log_roc_curve(all_labels, all_probs, prefix)
         
-        return metrics
+        return total_amount_list_model, total_amount_model, total_amount_naive_golden
     
     def _find_total_amount_won(
         self,
@@ -324,7 +324,7 @@ class Tester:
             (total_amount_list_model, "model", "b"),
             (total_amount_list_best, "best", "m"),
             (total_amount_list_worst, "worst", "c")
-        ] if self.visualization_best_worst else [
+        ] if self.test_visualization_best_worst else [
             (total_amount_list_naive, "naive", "g"),
             (total_amount_list_model, "model", "b")
         ]
@@ -350,7 +350,9 @@ class Tester:
         """Log testing parameters to MLflow"""
         self.mlflow.log_params({
             "model_name": self.model.__class__.__name__,
-            "batch_size": self.batch_size,
-            "importance_profit_loss": self.importance_profit_loss,
-            "visualization_best_worst": self.visualization_best_worst
+            "test_batch_size": self.test_batch_size,
+            "test_coefficient_ce_loss": self.test_coefficient_ce_loss,
+            "test_coefficient_profit_loss": self.test_coefficient_profit_loss,
+            "test_coefficient_small_preds_loss": self.test_coefficient_small_preds_loss,
+            "test_visualization_best_worst": self.test_visualization_best_worst
         })

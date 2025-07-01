@@ -1,6 +1,8 @@
 import argparse
 import os
+import time
 
+import mlflow
 import pandas as pd
 import torch
 from torch.utils.data import DataLoader, TensorDataset
@@ -12,6 +14,7 @@ from ai_model.models.trainer import Trainer
 from boosted_odds.database.main_database import Database
 from utils.constants import LIST_MODELS
 from utils.tools import load_config
+from utils.tools_ai_model import save_results
 
 LIST_WEBSITES = ["winamax", "PSEL", "betclic", "unibet"] # "winamax", "PSEL", "betclic", "unibet"
 
@@ -41,6 +44,9 @@ class MainTrainingAIModel():
         self.data = None
         self.prepare_data_instance = None
 
+        self.amount_won_model = 0
+        self.list_amount_won = []
+
         self._initialize_all()
         self._retrieve_and_prepare_data(website)
         
@@ -63,8 +69,6 @@ class MainTrainingAIModel():
         print(f"\nRetrieving and preparing data for {website}...")
         self.data = self.database.retrieve_all(table=website)
         self.prepare_data_instance = EnhancedPrepareData(df=self.data, **self.config['PREPARE_DATA'])
-        self.prepare_data_instance.log_parameters(self.mlflow)
-        print(f"Data retrieved and prepared for {website}. Number of rows: {len(self.data)}")
 
     def _create_data_loader(
         self,
@@ -115,7 +119,7 @@ class MainTrainingAIModel():
         if isinstance(self.model, torch.nn.Module):
             train_loader = self._create_data_loader(X_train, y_train, batch_size=self.config['TRAINING']['batch_size'], shuffle=False)
             val_loader = self._create_data_loader(X_val, y_val, batch_size=self.config['TRAINING']['batch_size'], shuffle=False) if X_val is not None else None
-            test_loader = self._create_data_loader(X_test, y_test, batch_size=self.config['TESTING']['batch_size'], shuffle=False)
+            test_loader = self._create_data_loader(X_test, y_test, batch_size=self.config['TESTING']['test_batch_size'], shuffle=False)
         else:
             train_loader = (X_train, y_train)
             test_loader = (X_test, y_test)
@@ -160,12 +164,12 @@ class MainTrainingAIModel():
             )
 
         train_loader = create_df_loader(train_df, self.config['TRAINING']['batch_size'])
-        test_loader = create_df_loader(test_df, self.config['TESTING']['batch_size'])
+        test_loader = create_df_loader(test_df, self.config['TESTING']['test_batch_size'])
         val_loader = create_df_loader(val_df, self.config['TRAINING']['batch_size']) if val_df is not None else None
 
         return train_loader, test_loader, val_loader
 
-    def run(self) -> None:
+    def run(self) -> tuple[list, float, float]:
         """
         Run the training process for the AI model.
         """
@@ -174,6 +178,10 @@ class MainTrainingAIModel():
 
         torch.cuda.empty_cache()
         torch.cuda.reset_peak_memory_stats()
+
+        # End the run if one is active
+        if mlflow.active_run():
+            mlflow.end_run()
 
         # Start MLflow run
         self.mlflow.start_run()
@@ -234,12 +242,15 @@ class MainTrainingAIModel():
 
         # Test the model
         print("\n\nStarting testing...")
-        _ = tester.test(
+        total_amount_list_model, total_amount_model, total_amount_golden_naive = tester.test(
             test_loader=test_loader,
             test_df_loader=test_df_loader,
             test_df=test_df,
             prefix="test"
         )
+
+        # Save some prepare data parameters to MLflow
+        self.prepare_data_instance.log_parameters(self.mlflow)
         
         # Save model
         if isinstance(trained_model, torch.nn.Module):
@@ -249,6 +260,8 @@ class MainTrainingAIModel():
             import joblib
             joblib.dump(trained_model, "final_model.joblib")
             self.mlflow.log_artifacts("final_model.joblib")
+
+        return total_amount_list_model, total_amount_model, total_amount_golden_naive
 
     def close(self) -> None:
         """
@@ -261,6 +274,9 @@ class MainTrainingAIModel():
 
 
 
+###########################################
+#         Main execution block            #
+###########################################
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Script with config and env file paths."
@@ -283,27 +299,33 @@ if __name__ == "__main__":
     config = load_config(args.config_path, args.env_path)
 
     # Create the lists of parameters
-    list_seeds = [41, 42, 43, 44]
-    list_config_number = [1, 2, 3, 4]
+    list_seeds = [40, 42, 44]
+    list_batch_size_embedding = [64, 128, 256]
+    save_str = "batch_size_embedding"
+    dictionary = {}
 
     # Create a loop to train the models with different configurations
-    for seed in list_seeds:
-        for config_number in list_config_number:
+    for batch_size in list_batch_size_embedding:
+        dictionary[batch_size] = {}
+        for seed in list_seeds:
             try:
                 # Update the config with the current seed and model
-                config['config_number'] = config_number
                 config['PREPARE_DATA']['random_state'] = seed
-                config['MLFLOW']['run_name'] = f"Training with config {config_number} for seed {seed}, coeffs 1, 0, 0"
-                
+                config['PREPARE_DATA']['batch_size_embedding'] = batch_size
+                config['MLFLOW']['run_name'] = f"batch size {batch_size}, Seed: {seed}"
+
                 # Create an instance of MainTrainingAIModel
-                main_training = MainTrainingAIModel(
-                    config=config,
-                    website=LIST_WEBSITES[0] # For this project wwe train only with "winamax"
-                )
-                
+                main_training = MainTrainingAIModel(config=config)
+
                 # Run training
-                main_training.run()
-                print(f"Training completed for seed {seed} and config {config_number}.\n")
+                total_amount_list_model, total_amount_model, total_amount_naive_golden = main_training.run()
+
+                # Store the results in the dictionary
+                dictionary[batch_size][seed] = {
+                    'total_amount_won': total_amount_model,
+                    'total_amount_list': total_amount_list_model,
+                    'total_amount_golden_naive': total_amount_naive_golden
+                }
 
                 # Clean up resources
                 main_training.close()
@@ -314,9 +336,12 @@ if __name__ == "__main__":
                 if 'main_training' in locals():
                     main_training.close()
                     print("Training process completed and resources cleaned up.")
+                time.sleep(5)
 
+    # Plot the results of the dictionary and save it
+    save_results(dictionary, save_str)
 
-
+    
     # python3 ai_model/main_ai_model.py --config_path config/config.yaml --env_path config/.env.gagou
     # python3 -m ai_model.main_ai_model --config_path config/config.yaml --env_path config/.env.gagou
 

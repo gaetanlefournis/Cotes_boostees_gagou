@@ -37,6 +37,7 @@ class EnhancedPrepareData:
         threshold_sports: int = 50,
         only_golden: bool = False,
         without_golden: bool = False,
+        with_feature_is_golden: bool = True,
         **kwargs
     ):
         self.df = df.copy()
@@ -50,6 +51,7 @@ class EnhancedPrepareData:
         self.threshold_sports = threshold_sports
         self.only_golden = only_golden
         self.without_golden = without_golden
+        self.with_feature_is_golden = with_feature_is_golden
         self.selected_text_features = None
         self.final_train_df = None
         self.final_val_df = None
@@ -176,7 +178,8 @@ class EnhancedPrepareData:
         # Add golden-specific features
         if not self.without_golden:
             numeric_features.append('golden_odds_boost')
-            numeric_features.append('is_golden')
+            if self.with_feature_is_golden:
+                numeric_features.append('is_golden')
 
         
         # Add text length features if available
@@ -272,16 +275,18 @@ class EnhancedPrepareData:
     
     def log_parameters(self, mlflow: MLFlow) -> None:
         """Log parameters for MLFLOW"""
-        mlflow.log_params("text_embedding_method", self.text_embedding_method)
-        mlflow.log_params("use_class_token", self.use_class_token)
-        mlflow.log_params("test_size", self.test_size)
-        mlflow.log_params("val_size", self.val_size)
-        mlflow.log_params("chronological_split", self.chronological_split)
-        mlflow.log_params("random_state", self.random_state)
-        mlflow.log_params("batch_size_embedding", self.batch_size_embedding)
-        mlflow.log_params("threshold_sports", self.threshold_sports)
-        mlflow.log_params("only_golden", self.only_golden)
-        mlflow.log_params("without_golden", self.without_golden)
+        mlflow.log_params({"text_embedding_method": self.text_embedding_method,
+                           "use_class_token": self.use_class_token,
+                           "test_size": self.test_size,
+                           "val_size": self.val_size,
+                           "chronological_split": self.chronological_split,
+                           "random_state": self.random_state,
+                           "batch_size_embedding": self.batch_size_embedding,
+                           "threshold_sports": self.threshold_sports,
+                           "only_golden": self.only_golden,
+                           "without_golden": self.without_golden,
+                           "with_feature_is_golden": self.with_feature_is_golden
+                        })
 
     # Keep your exact __call__ method as provided
     def __call__(self) -> tuple[tuple[torch.Tensor, torch.Tensor], 

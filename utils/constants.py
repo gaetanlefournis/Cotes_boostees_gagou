@@ -98,6 +98,9 @@ LIST_MODELS = {
 # Base amount for calculating profit/loss in euros
 AMOUNT_BASE = 10
 
+# List of seeds used for reproducibility in experiments
+LIST_SEEDS = [40, 42, 44]
+
 
 CONDITIONS_ON_SPORTS = {
     "winamax": 
