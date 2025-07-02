@@ -54,26 +54,19 @@ if __name__ == "__main__":
 
         # Find the target fitness that will be used for early stopping
         list_seeds = LIST_SEEDS
-        total_amount_naive_golden = 0
-        target_fitness = 410
+        total_amount_naive_golden = 0.0
 
         for seed in list_seeds:
             config['SEED'] = seed
             print(f"Running with seed: {seed}")
             config['MLFLOW']['run_name'] = f"Finding target fitness with seed {seed}"
             main_training_ai_model = MainTrainingAIModel(config)
-            try:
-                _, _, total_amount_naive_golden = main_training_ai_model.run()
-            except ValueError:
-                continue
-            finally:
-                # Clean up resources
-                main_training_ai_model.close()
+            _, _, total_amount_naive_golden = main_training_ai_model.run()
 
             total_amount_naive_golden +=  total_amount_naive_golden
 
         # We define the target fitness as 50% more than the average amount won with the naive strategy on gold odds
-        target_fitness = total_amount_naive_golden / len(list_seeds) * 1.5 if total_amount_naive_golden != 0 else target_fitness
+        target_fitness = total_amount_naive_golden / len(list_seeds) * 1.5
         print(f"Target fitness for early stopping: {target_fitness:.2f}")
 
         # Run the evolutionary optimization process
