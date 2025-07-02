@@ -53,7 +53,7 @@ def func_profit_loss(
     return normalized_loss
 
 def func_small_preds_loss(
-    preds: torch.Tensor,
+    pred_probs: torch.Tensor,
     labels: torch.Tensor
 ) -> torch.Tensor:
     """
@@ -61,15 +61,13 @@ def func_small_preds_loss(
     """
     # Penalize when the number of predictions is too different from the number of labels
     # This is to avoid models that predict too few positive cases and also to avoid models that predict too many positive cases
-    pred_sum = torch.sum(preds)
+    pred_sum = torch.sum(pred_probs)  # Sum of probabilities (differentiable)
     label_sum = torch.sum(labels)
-
-    # Avoid division by zero, add epsilon
     eps = 1e-6
     ratio = pred_sum / (label_sum + eps)
-    small_preds_loss = (1.0 - ratio)**2
+    loss = (1.0 - ratio)**2
 
-    return small_preds_loss.mean()
+    return loss
 
 def save_results(dictionary: dict, save_str: str) -> None:
     """plot and save the figure of the results"""

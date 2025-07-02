@@ -24,7 +24,6 @@ class ProfitAwareLoss(nn.Module):
         self,
         logits : torch.Tensor,
         labels: torch.Tensor,
-        preds: torch.Tensor,
         batch_df_odds: torch.Tensor,
         amount_base=10
     ):
@@ -40,7 +39,7 @@ class ProfitAwareLoss(nn.Module):
             ce_loss = F.cross_entropy(logits, labels, weight=self.weights)
         else:
             ce_loss = F.cross_entropy(logits, labels)
-        ce_loss *= self.coeff_ce_loss
+        ce_loss = ce_loss ** self.coeff_ce_loss
         
         # Add profit component
         probs = torch.softmax(logits, dim=1)[:, 1]
@@ -50,13 +49,13 @@ class ProfitAwareLoss(nn.Module):
             batch_df_odds=batch_df_odds,
             amount_base=amount_base
         )
-        profit_loss *= self.coeff_profit_loss
+        profit_loss = profit_loss ** (1.0 + self.coeff_profit_loss)
 
         # Add penalty component
         small_preds_loss = func_small_preds_loss(
-            preds=preds,
+            pred_probs=probs,
             labels=labels
         )
-        small_preds_loss *= self.coeff_small_preds_loss
+        small_preds_loss = small_preds_loss ** (0.5 * self.coeff_small_preds_loss)
 
-        return ce_loss + profit_loss + small_preds_loss
+        return ce_loss * profit_loss * small_preds_loss

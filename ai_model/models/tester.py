@@ -139,7 +139,7 @@ class Tester:
                 probs = torch.softmax(outputs, dim=1)
                 _, preds = torch.max(outputs, 1)
 
-                loss = self.criterion_test(outputs, labels, preds, batch_df_odds=batch_df_odds)
+                loss = self.criterion_test(outputs, labels, batch_df_odds=batch_df_odds)
                 test_loss += loss.item()
 
                 all_preds.extend(preds.cpu().numpy())

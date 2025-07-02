@@ -359,11 +359,6 @@ class EvolutionaryOptimizer():
         with open(filename, 'wb') as f:
             pickle.dump(checkpoint, f)
         
-        # Keep only the most recent checkpoint to save space
-        for old_file in os.listdir(checkpoint_dir):
-            if old_file != os.path.basename(filename):
-                os.remove(os.path.join(checkpoint_dir, old_file))
-        
         return filename
 
     def load_checkpoint(self, checkpoint_path: str) -> tuple:

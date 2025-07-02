@@ -152,7 +152,7 @@ class Trainer:
                 _, preds = torch.max(outputs, 1)
 
                 # Use our own loss function
-                loss = self.loss_criterion(outputs, labels, preds, batch_df_odds=batch_df_odds)
+                loss = self.loss_criterion(outputs, labels, batch_df_odds=batch_df_odds)
 
                 # Do the backward pass and optimization
                 loss.backward()
@@ -189,7 +189,7 @@ class Trainer:
                         _, val_preds = torch.max(val_outputs, 1)
 
                         # Use our own loss function
-                        loss = self.loss_criterion_validation(val_outputs, val_labels, val_preds, batch_df_odds=val_batch_df_odds)
+                        loss = self.loss_criterion_validation(val_outputs, val_labels, batch_df_odds=val_batch_df_odds)
 
                         # Update metrics
                         val_loss += loss.item() * val_inputs.size(0)
