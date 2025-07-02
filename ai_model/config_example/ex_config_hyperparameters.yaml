@@ -1,0 +1,22 @@
+MODEL_PARAMETERS:
+  config_number:
+    type: choice
+    values: [1, 2, 3, 4]
+
+TRAINING_PARAMETERS:
+  learning_rate:
+    type: loguniform
+    low: 0.0000005
+    high: 0.0001
+  coefficient_ce_loss:
+    type: uniform
+    low: 0.0
+    high: 1.0
+  coefficient_profit_loss:
+    type: uniform
+    low: 0.0
+    high: 1.0
+  coefficient_small_preds_loss:
+    type: uniform
+    low: 0.0
+    high: 1.0
