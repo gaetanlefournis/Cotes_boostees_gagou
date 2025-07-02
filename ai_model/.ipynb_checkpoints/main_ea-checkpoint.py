@@ -73,7 +73,7 @@ if __name__ == "__main__":
             total_amount_naive_golden +=  total_amount_naive_golden
 
         # We define the target fitness as 50% more than the average amount won with the naive strategy on gold odds
-        target_fitness = total_amount_naive_golden / len(list_seeds) * 1.5 if total_amount_naive_golden != 0 else target_fitness
+        target_fitness = total_amount_naive_golden / len(list_seeds) * 1.5 if total_amount_naive_golden != 0 else target_fitness * 1.5
         print(f"Target fitness for early stopping: {target_fitness:.2f}")
 
         # Run the evolutionary optimization process
@@ -82,7 +82,7 @@ if __name__ == "__main__":
             base_config=config,
             target_fitness=target_fitness,
             checkpoint_interval=1,
-            checkpoint_path="checkpoints/checkpoint_gen_6.pkl"
+            checkpoint_path="checkpoints_1/checkpoint_gen_10.pkl"
         )
 
         plot_fitness_progression(stats, index = index)
