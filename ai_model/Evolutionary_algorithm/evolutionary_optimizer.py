@@ -305,8 +305,11 @@ class EvolutionaryOptimizer():
                 no_improvement_generations = 0
                 prev_best_fitness = best_fitness
             
-            if best_fitness >= target_fitness or no_improvement_generations >= patience:
-                print("Stopping early")
+            if best_fitness >= target_fitness:
+                print(f"Target fitness {target_fitness} reached at generation {gen}. Stopping early.")
+                break
+            if no_improvement_generations >= patience:
+                print(f"No improvement for {patience} generations. Stopping early.")
                 break
         
         best_individual = tools.selBest(population, 1)[0]
