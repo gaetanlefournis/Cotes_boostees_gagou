@@ -114,7 +114,7 @@ class EvolutionaryOptimizer():
 
     def custom_mutate(self, individual: dict) -> tuple[dict]:
         """Custom mutation operator with local changes for numerical parameters."""
-        print(f"intial individual before mutation: {individual}")
+        print(f"intial individual before mutation: {[individual[param]['value'] for param in individual.keys()]}")
         for param, values in individual.items():
             if random.random() < self.pm:
                 if values['type'] == 'choice':
@@ -143,7 +143,7 @@ class EvolutionaryOptimizer():
                     mutated_log = np.clip(np.random.normal(loc=log_current, scale=std), log_low, log_high)
                     individual[param]['value'] = 10**mutated_log
 
-        print(f"individual after mutation: {individual}")
+        print(f"individual after mutation: {[individual[param]['value'] for param in individual.keys()]}")
         return individual,
 
     def custom_selection_elite(self, population: list[dict], n: int) -> list[dict]:
@@ -217,6 +217,7 @@ class EvolutionaryOptimizer():
         """
         # Initialize tracking variables
         stats = {
+            'population': [],
             'generations': [],
             'best_fitness': [],
             'avg_fitness': [],
@@ -257,18 +258,22 @@ class EvolutionaryOptimizer():
             print(f"\n--- Generation {gen} ---")
             
             # Elitism
-            elite_count = min(self.population_size, int((gen / self.generations) * self.population_size))
+            elite_count = min(self.population_size, int((gen / self.generations) * self.population_size)//2)
+            print(f"Elite count for generation {gen}: {elite_count}")
             elites = self.toolbox.selection_elite(population, elite_count)
             
             # Selection and variation
-            offspring = self.toolbox.selection(population, len(population) - elite_count)
+            offspring = self.toolbox.selection(population, self.population_size - elite_count)
+            print(f"Offspring selected for generation {gen}: {len(offspring)}")
             offspring = list(map(self.toolbox.clone, offspring))
             
             # Crossover
-            for i in range(1, len(offspring), 2):
-                if i + 1 < len(offspring):
-                    self.toolbox.crossover(offspring[i - 1], offspring[i])
-            
+            for i in range(1, len(offspring)):
+                print(f"Crossover between two random individuals in generation {gen}")
+                index_1 = random.randint(0, len(offspring) - 1)
+                index_2 = random.randint(0, len(offspring) - 1)
+                self.toolbox.crossover(offspring[index_1], offspring[index_2])
+
             # Mutation
             for mutant in offspring:
                 self.toolbox.mutation(mutant)
@@ -291,6 +296,7 @@ class EvolutionaryOptimizer():
             stats['avg_fitness'].append(sum(fitnesses)/len(fitnesses))
             stats['worst_fitness'].append(min(fitnesses))
             stats['best_individuals'].append(tools.selBest(population, 1)[0])
+            stats['population'].append(population)
             
             # Save checkpoint
             self.save_checkpoint(gen, population, stats)
@@ -321,7 +327,7 @@ class EvolutionaryOptimizer():
         return best_individual, stats
     
 
-    def save_checkpoint(self, generation: int, population: list, stats: dict, checkpoint_dir: str = "checkpoints") -> str:
+    def save_checkpoint(self, generation: int, population: list, stats: dict, checkpoint_dir: str = "checkpoints_1") -> str:
         """Save the current state of the optimization to a checkpoint file."""
         os.makedirs(checkpoint_dir, exist_ok=True)
         

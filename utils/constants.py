@@ -99,7 +99,7 @@ LIST_MODELS = {
 AMOUNT_BASE = 10
 
 # List of seeds used for reproducibility in experiments
-LIST_SEEDS = [40, 42, 44]
+LIST_SEEDS = [40]
 
 
 CONDITIONS_ON_SPORTS = {

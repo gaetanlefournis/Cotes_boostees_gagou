@@ -72,8 +72,8 @@ if __name__ == "__main__":
 
             total_amount_naive_golden +=  total_amount_naive_golden
 
-        # We define the target fitness as 50% more than the average amount won with the naive strategy on gold odds
-        target_fitness = total_amount_naive_golden / len(list_seeds) * 1.5 if total_amount_naive_golden != 0 else target_fitness * 1.5
+        # We define the target fitness as 3 times more than the average amount won with the naive strategy on gold odds
+        target_fitness = total_amount_naive_golden / len(list_seeds) * 3 if total_amount_naive_golden != 0 else target_fitness * 3
         print(f"Target fitness for early stopping: {target_fitness:.2f}")
 
         # Run the evolutionary optimization process

@@ -24,16 +24,23 @@ def func_profit_loss(
         - 0 = maximum possible profit
         - 1 = maximum possible loss
     """
+    # Clamp probabilities for numerical stability
+    pred_probs = torch.clamp(pred_probs, 1e-3, 1 - 1e-3)
+
     # Convert odds to tensor on correct device
     batch_odds = batch_df_odds.to(pred_probs.device)
-    
-    # Profit calculation (net profit version)
-    wins = labels.float()
-    net_profit = (batch_odds - 1) * amount_base * wins
-    losses = amount_base * (1 - wins)
 
-    # Total profit for batch
-    batch_profit = (net_profit - losses).sum()
+    # Profit/loss components
+    wins = (labels == 1).float()
+    losses = (labels == 0).float()
+    
+    # Symmetric profit/loss scaling
+    net_profit = (
+        (pred_probs * (batch_odds - 1) * wins - 
+        (1 - pred_probs) * losses)
+    ) * amount_base
+    
+    batch_profit = net_profit.sum()
     
     # Theoretical bounds for normalization
     max_profit = ((batch_odds - 1) * amount_base * wins).sum()
@@ -41,6 +48,7 @@ def func_profit_loss(
     
     # Normalize to [0,1] range
     normalized_loss = 1 - (batch_profit - min_profit) / (max_profit - min_profit + 1e-6)
+    normalized_loss = torch.clamp(normalized_loss, 0, 1)
     
     return normalized_loss
 
