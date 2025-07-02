@@ -31,7 +31,6 @@ if __name__ == "__main__":
         default="hyperparameters_range.yaml",
         help="Path to the hyperparameters configuration file (default: config/hyperparameters_range.yaml)",
     )
-
     
 
     try:
@@ -55,7 +54,7 @@ if __name__ == "__main__":
         # Find the target fitness that will be used for early stopping
         list_seeds = LIST_SEEDS
         total_amount_naive_golden = 0
-        target_fitness = 410
+        target_fitness = 821
 
         for seed in list_seeds:
             config['SEED'] = seed
@@ -82,7 +81,7 @@ if __name__ == "__main__":
             base_config=config,
             target_fitness=target_fitness,
             checkpoint_interval=1,
-            checkpoint_path="checkpoints_1/checkpoint_gen_10.pkl"
+            checkpoint_path="checkpoints_2/checkpoint_gen_10.pkl"
         )
 
         plot_fitness_progression(stats, index = index)

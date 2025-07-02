@@ -52,7 +52,6 @@ class EvolutionaryOptimizer():
         self.toolbox.register("selection_elite", self.custom_selection_elite)
         self.toolbox.register("selection", tools.selTournament, tournsize=3)
         self.toolbox.register("evaluate", self.evaluate_individual)
-        self.toolbox.register("merge_populations", self.merge_populations)
         self.toolbox.register("clone", copy.deepcopy)
 
     def generate_individual(self):
@@ -114,7 +113,7 @@ class EvolutionaryOptimizer():
 
     def custom_mutate(self, individual: dict) -> tuple[dict]:
         """Custom mutation operator with local changes for numerical parameters."""
-        print(f"intial individual before mutation: {individual}")
+        print(f"intial individual before mutation: {[individual[param]['value'] for param in individual.keys()]}")
         for param, values in individual.items():
             if random.random() < self.pm:
                 if values['type'] == 'choice':
@@ -143,7 +142,7 @@ class EvolutionaryOptimizer():
                     mutated_log = np.clip(np.random.normal(loc=log_current, scale=std), log_low, log_high)
                     individual[param]['value'] = 10**mutated_log
 
-        print(f"individual after mutation: {individual}")
+        print(f"individual after mutation: {[individual[param]['value'] for param in individual.keys()]}")
         return individual,
 
     def custom_selection_elite(self, population: list[dict], n: int) -> list[dict]:
@@ -197,14 +196,6 @@ class EvolutionaryOptimizer():
 
         # Return the fitness value as a tuple
         return (fitness_value,)
-    
-    def merge_populations(self, population1: list[dict], population2: list[dict]) -> list[dict]:
-        """Merge two populations into one."""
-        merged_population = population1 + population2
-        # Ensure the merged population does not exceed the maximum size
-        if len(merged_population) > self.population_size:
-            merged_population = tools.selBest(merged_population, k=self.population_size)
-        return merged_population
 
     def main(self, base_config: dict, target_fitness: float = 1000, 
             checkpoint_interval: int = 1, checkpoint_path: str = None) -> tuple[dict, dict]:
@@ -217,6 +208,7 @@ class EvolutionaryOptimizer():
         """
         # Initialize tracking variables
         stats = {
+            'population': [],
             'generations': [],
             'best_fitness': [],
             'avg_fitness': [],
@@ -257,18 +249,35 @@ class EvolutionaryOptimizer():
             print(f"\n--- Generation {gen} ---")
             
             # Elitism
-            elite_count = min(self.population_size, int((gen / self.generations) * self.population_size))
+            elite_count = min(self.population_size, int((gen / self.generations) * self.population_size)//3)
+            print(f"Elite count for generation {gen}: {elite_count}")
             elites = self.toolbox.selection_elite(population, elite_count)
             
             # Selection and variation
-            offspring = self.toolbox.selection(population, len(population) - elite_count)
-            offspring = list(map(self.toolbox.clone, offspring))
+            non_elites = [ind for ind in population if ind not in elites]
+            num_parents_needed = 6
+            parents = self.toolbox.selection(non_elites, num_parents_needed)
+            print(f"selected {len(parents)} parents for generation {gen}")
             
-            # Crossover
-            for i in range(1, len(offspring), 2):
-                if i + 1 < len(offspring):
-                    self.toolbox.crossover(offspring[i - 1], offspring[i])
-            
+            offspring = []
+            num_offspring = 10
+
+            while len(offspring) < num_offspring and len(parents) >= 2:
+                # Select two different parents randomly
+                parent1, parent2 = random.sample(parents, 2)
+                
+                # Clone parents before crossover to avoid modifying originals
+                child1, child2 = self.toolbox.clone(parent1), self.toolbox.clone(parent2)
+                
+                # Apply crossover
+                self.toolbox.crossover(child1, child2)
+                
+                # Add to offspring
+                offspring.extend([child1, child2])
+
+            # Trim if we got more than needed
+            offspring = offspring[:num_offspring]
+
             # Mutation
             for mutant in offspring:
                 self.toolbox.mutation(mutant)
@@ -282,7 +291,10 @@ class EvolutionaryOptimizer():
                     ind.fitness.values = value_fitness
                     
             # Combine populations
-            population = self.toolbox.merge_populations(elites, offspring)
+            population = elites + offspring
+
+            # Ensure population size is maintained
+            assert len(population) == elite_count + 10, "Population size mismatch"
             
             # Update statistics
             fitnesses = [ind.fitness.values[0] for ind in population]
@@ -291,6 +303,7 @@ class EvolutionaryOptimizer():
             stats['avg_fitness'].append(sum(fitnesses)/len(fitnesses))
             stats['worst_fitness'].append(min(fitnesses))
             stats['best_individuals'].append(tools.selBest(population, 1)[0])
+            stats['population'].append(population)
             
             # Save checkpoint
             self.save_checkpoint(gen, population, stats)
@@ -305,8 +318,11 @@ class EvolutionaryOptimizer():
                 no_improvement_generations = 0
                 prev_best_fitness = best_fitness
             
-            if best_fitness >= target_fitness or no_improvement_generations >= patience:
-                print("Stopping early")
+            if best_fitness >= target_fitness:
+                print(f"Target fitness {target_fitness} reached at generation {gen}. Stopping early.")
+                break
+            if no_improvement_generations >= patience:
+                print(f"No improvement for {patience} generations. Stopping early.")
                 break
         
         best_individual = tools.selBest(population, 1)[0]
@@ -318,7 +334,7 @@ class EvolutionaryOptimizer():
         return best_individual, stats
     
 
-    def save_checkpoint(self, generation: int, population: list, stats: dict, checkpoint_dir: str = "checkpoints") -> str:
+    def save_checkpoint(self, generation: int, population: list, stats: dict, checkpoint_dir: str = "checkpoints_2") -> str:
         """Save the current state of the optimization to a checkpoint file."""
         os.makedirs(checkpoint_dir, exist_ok=True)
         
@@ -364,3 +380,4 @@ class EvolutionaryOptimizer():
             checkpoint['population'],
             checkpoint['stats']
         )
+    
