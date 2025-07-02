@@ -299,9 +299,9 @@ if __name__ == "__main__":
     config = load_config(args.config_path, args.env_path)
 
     # Create the lists of parameters
-    list_seeds = [40, 42, 44]
-    list_coefficients = [[1, 0, 0], [0.5, 0.5, 0], [0.33, 0.33, 0.33]]
-    save_str = "coefficients"
+    list_seeds = [40]
+    list_coefficients = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    save_str = "coeffs"
     dictionary = {}
 
     # Create a loop to train the models with different configurations
@@ -317,7 +317,7 @@ if __name__ == "__main__":
                 config['TESTING']['test_coefficient_ce_loss'] = coefficients[0]
                 config['TESTING']['test_coefficient_profit_loss'] = coefficients[1]
                 config['TESTING']['test_coefficient_small_preds_loss'] = coefficients[2]
-                config['MLFLOW']['run_name'] = f"coefficients new loss 3 {coefficients}, Seed: {seed}"
+                config['MLFLOW']['run_name'] = f"coeffs {coefficients}, Seed: {seed}"
 
                 # Create an instance of MainTrainingAIModel
                 main_training = MainTrainingAIModel(config=config)

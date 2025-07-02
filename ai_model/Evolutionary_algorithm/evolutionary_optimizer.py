@@ -52,7 +52,6 @@ class EvolutionaryOptimizer():
         self.toolbox.register("selection_elite", self.custom_selection_elite)
         self.toolbox.register("selection", tools.selTournament, tournsize=3)
         self.toolbox.register("evaluate", self.evaluate_individual)
-        self.toolbox.register("merge_populations", self.merge_populations)
         self.toolbox.register("clone", copy.deepcopy)
 
     def generate_individual(self):
@@ -197,14 +196,6 @@ class EvolutionaryOptimizer():
 
         # Return the fitness value as a tuple
         return (fitness_value,)
-    
-    def merge_populations(self, population1: list[dict], population2: list[dict]) -> list[dict]:
-        """Merge two populations into one."""
-        merged_population = population1 + population2
-        # Ensure the merged population does not exceed the maximum size
-        if len(merged_population) > self.population_size:
-            merged_population = tools.selBest(merged_population, k=self.population_size)
-        return merged_population
 
     def main(self, base_config: dict, target_fitness: float = 1000, 
             checkpoint_interval: int = 1, checkpoint_path: str = None) -> tuple[dict, dict]:
@@ -258,21 +249,34 @@ class EvolutionaryOptimizer():
             print(f"\n--- Generation {gen} ---")
             
             # Elitism
-            elite_count = min(self.population_size, int((gen / self.generations) * self.population_size)//2)
+            elite_count = min(self.population_size, int((gen / self.generations) * self.population_size)//3)
             print(f"Elite count for generation {gen}: {elite_count}")
             elites = self.toolbox.selection_elite(population, elite_count)
             
             # Selection and variation
-            offspring = self.toolbox.selection(population, self.population_size - elite_count)
-            print(f"Offspring selected for generation {gen}: {len(offspring)}")
-            offspring = list(map(self.toolbox.clone, offspring))
+            non_elites = [ind for ind in population if ind not in elites]
+            num_parents_needed = 6
+            parents = self.toolbox.selection(non_elites, num_parents_needed)
+            print(f"selected {len(parents)} parents for generation {gen}")
             
-            # Crossover
-            for i in range(1, len(offspring)):
-                print(f"Crossover between two random individuals in generation {gen}")
-                index_1 = random.randint(0, len(offspring) - 1)
-                index_2 = random.randint(0, len(offspring) - 1)
-                self.toolbox.crossover(offspring[index_1], offspring[index_2])
+            offspring = []
+            num_offspring = 10
+
+            while len(offspring) < num_offspring and len(parents) >= 2:
+                # Select two different parents randomly
+                parent1, parent2 = random.sample(parents, 2)
+                
+                # Clone parents before crossover to avoid modifying originals
+                child1, child2 = self.toolbox.clone(parent1), self.toolbox.clone(parent2)
+                
+                # Apply crossover
+                self.toolbox.crossover(child1, child2)
+                
+                # Add to offspring
+                offspring.extend([child1, child2])
+
+            # Trim if we got more than needed
+            offspring = offspring[:num_offspring]
 
             # Mutation
             for mutant in offspring:
@@ -287,7 +291,10 @@ class EvolutionaryOptimizer():
                     ind.fitness.values = value_fitness
                     
             # Combine populations
-            population = self.toolbox.merge_populations(elites, offspring)
+            population = elites + offspring
+
+            # Ensure population size is maintained
+            assert len(population) == elite_count + 10, "Population size mismatch"
             
             # Update statistics
             fitnesses = [ind.fitness.values[0] for ind in population]
@@ -373,3 +380,4 @@ class EvolutionaryOptimizer():
             checkpoint['population'],
             checkpoint['stats']
         )
+    
