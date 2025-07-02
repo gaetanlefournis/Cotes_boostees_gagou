@@ -300,19 +300,24 @@ if __name__ == "__main__":
 
     # Create the lists of parameters
     list_seeds = [40, 42, 44]
-    list_batch_size_embedding = [64, 128, 256]
-    save_str = "batch_size_embedding"
+    list_coefficients = [[1, 0, 0], [0, 1, 0], [0, 0, 1], [0.5, 0.5, 0], [0.5, 0, 0.5], [0, 0.5, 0.5]]
+    save_str = "coefficients"
     dictionary = {}
 
     # Create a loop to train the models with different configurations
-    for batch_size in list_batch_size_embedding:
-        dictionary[batch_size] = {}
+    for coefficients in list_coefficients:
+        dictionary[tuple(coefficients)] = {}
         for seed in list_seeds:
             try:
                 # Update the config with the current seed and model
                 config['PREPARE_DATA']['random_state'] = seed
-                config['PREPARE_DATA']['batch_size_embedding'] = batch_size
-                config['MLFLOW']['run_name'] = f"batch size {batch_size}, Seed: {seed}"
+                config['TRAINING']['coefficient_ce_loss'] = coefficients[0]
+                config['TRAINING']['coefficient_profit_loss'] = coefficients[1]
+                config['TRAINING']['coefficient_small_preds_loss'] = coefficients[2]
+                config['TESTING']['test_coefficient_ce_loss'] = coefficients[0]
+                config['TESTING']['test_coefficient_profit_loss'] = coefficients[1]
+                config['TESTING']['test_coefficient_small_preds_loss'] = coefficients[2]
+                config['MLFLOW']['run_name'] = f"coefficients {coefficients}, Seed: {seed}"
 
                 # Create an instance of MainTrainingAIModel
                 main_training = MainTrainingAIModel(config=config)
@@ -324,7 +329,7 @@ if __name__ == "__main__":
                     continue
 
                 # Store the results in the dictionary
-                dictionary[batch_size][seed] = {
+                dictionary[tuple(coefficients)][seed] = {
                     'total_amount_won': total_amount_model,
                     'total_amount_list': total_amount_list_model,
                     'total_amount_golden_naive': total_amount_naive_golden
@@ -348,4 +353,4 @@ if __name__ == "__main__":
     # python3 ai_model/main_ai_model.py --config_path config/config.yaml --env_path config/.env.gagou
     # python3 -m ai_model.main_ai_model --config_path config/config.yaml --env_path config/.env.gagou
 
-    # mlflow ui --backend-store-uri ./mlruns --host 127.0.0.1 --port 5001
+    # mlflow ui --backend-store-uri ./mlruns --host 127.0.0.1 --port 5002
