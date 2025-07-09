@@ -2,22 +2,24 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from utils.tools_ai_model import func_profit_loss, func_small_preds_loss
+from utils.tools_ai_model import func_profit_loss
 
 
 class ProfitAwareLoss(nn.Module):
-    """Profit-aware loss function combining cross-entropy and profit loss, adding a penalty for small amount of predictions."""
+    """Profit-aware loss function combining cross-entropy and profit loss"""
     def __init__(
         self,
+        number_loss: int = 1,
+        type_profit_loss: int = 1,
         coeff_ce_loss : float = 0.5,
         coeff_profit_loss : float = 0.5,
-        coeff_small_preds_loss : float = 0.5,
         weights : torch.Tensor = None
     ):
         super().__init__()
+        self.number_loss = number_loss
+        self.type_profit_loss = type_profit_loss
         self.coeff_ce_loss = coeff_ce_loss
         self.coeff_profit_loss = coeff_profit_loss
-        self.coeff_small_preds_loss = coeff_small_preds_loss
         self.weights = weights
 
     def forward(
@@ -39,7 +41,6 @@ class ProfitAwareLoss(nn.Module):
             ce_loss = F.cross_entropy(logits, labels, weight=self.weights)
         else:
             ce_loss = F.cross_entropy(logits, labels)
-        ce_loss = ce_loss ** self.coeff_ce_loss
         
         # Add profit component
         probs = torch.softmax(logits, dim=1)[:, 1]
@@ -47,15 +48,24 @@ class ProfitAwareLoss(nn.Module):
             pred_probs=probs,
             labels=labels,
             batch_df_odds=batch_df_odds,
-            amount_base=amount_base
+            amount_base=amount_base,
+            type_loss=self.type_profit_loss,
         )
-        profit_loss = profit_loss ** (1.0 + self.coeff_profit_loss)
 
-        # Add penalty component
-        small_preds_loss = func_small_preds_loss(
-            pred_probs=probs,
-            labels=labels
-        )
-        small_preds_loss = small_preds_loss ** (0.5 * self.coeff_small_preds_loss)
+        if self.number_loss == 1:
+            total_loss = (
+                self.coeff_ce_loss * ce_loss +
+                self.coeff_profit_loss * profit_loss
+            )
+        elif self.number_loss == 2:
+            total_loss = (
+                ce_loss ** self.coeff_ce_loss +
+                profit_loss ** self.coeff_profit_loss
+            )
+        elif self.number_loss == 3:
+            total_loss = (
+                ce_loss ** self.coeff_ce_loss *
+                profit_loss ** self.coeff_profit_loss
+            )
 
-        return ce_loss * profit_loss * small_preds_loss
+        return total_loss

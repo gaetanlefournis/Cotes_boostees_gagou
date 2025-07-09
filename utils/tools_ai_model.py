@@ -1,14 +1,20 @@
+import os
+import pickle
+
 import matplotlib.pyplot as plt
-import pandas as pd
 import torch
-from pandas.plotting import parallel_coordinates
+import random
+import numpy as np
+
+from ai_model.prepare_data.prepare_data import EnhancedPrepareData
 
 
 def func_profit_loss(
     pred_probs: torch.Tensor, 
     labels: torch.Tensor, 
     batch_df_odds: torch.Tensor,
-    amount_base: float = 10
+    amount_base: float = 10,
+    type_loss: int = 1,
 ) -> torch.Tensor:
     """
     Differentiable profit loss (net profit version)
@@ -42,32 +48,20 @@ def func_profit_loss(
     
     batch_profit = net_profit.sum()
     
-    # Theoretical bounds for normalization
-    max_profit = ((batch_odds - 1) * amount_base * wins).sum()
-    min_profit = -(amount_base * (1 - wins)).sum()
-    
-    # Normalize to [0,1] range
-    normalized_loss = 1 - (batch_profit - min_profit) / (max_profit - min_profit + 1e-6)
-    normalized_loss = torch.clamp(normalized_loss, 0, 1)
+    if type_loss == 1:
+        # use the sigmoid function to create a penalty term
+        normalized_loss = torch.sigmoid(-batch_profit/100)
+
+    else:
+        # Theoretical bounds for normalization
+        max_profit = ((batch_odds - 1) * amount_base * wins).sum()
+        min_profit = -(amount_base * (1 - wins)).sum()
+        
+        # Normalize to [0,1] range
+        normalized_loss = 1 - (batch_profit - min_profit) / (max_profit - min_profit + 1e-6)
+        normalized_loss = torch.clamp(normalized_loss, 0, 1)
     
     return normalized_loss
-
-def func_small_preds_loss(
-    pred_probs: torch.Tensor,
-    labels: torch.Tensor
-) -> torch.Tensor:
-    """
-    Small predictions loss function penalizing small prediction values.
-    """
-    # Penalize when the number of predictions is too different from the number of labels
-    # This is to avoid models that predict too few positive cases and also to avoid models that predict too many positive cases
-    pred_sum = torch.sum(pred_probs)  # Sum of probabilities (differentiable)
-    label_sum = torch.sum(labels)
-    eps = 1e-6
-    ratio = pred_sum / (label_sum + eps)
-    loss = (1.0 - ratio)**2
-
-    return loss
 
 def save_results(dictionary: dict, save_str: str) -> None:
     """plot and save the figure of the results"""
@@ -94,52 +88,41 @@ def save_results(dictionary: dict, save_str: str) -> None:
     plt.savefig(f"plots/results_{save_str}.png")
     plt.close()
 
-def plot_fitness_progression(stats: dict, index: int = 0):
-    """Plot the best, average, and worst fitness over generations."""
-    plt.figure(figsize=(10, 6))
-    plt.plot(stats['generations'], stats['best_fitness'], 'g-', label='Best Fitness')
-    plt.plot(stats['generations'], stats['avg_fitness'], 'b-', label='Average Fitness')
-    plt.plot(stats['generations'], stats['worst_fitness'], 'r-', label='Worst Fitness')
-    
-    plt.title('Fitness Progression Over Generations')
-    plt.xlabel('Generation')
-    plt.ylabel('Fitness')
-    plt.legend()
-    plt.grid(True)
-    plt.savefig(f'plots/fitness_progression_{index}.png')
-    plt.close()
+def save_pickle_file(object: object, **kwargs) -> None:
+    """Save the object to a pickle file with a dynamic path."""
+    path_name = "ai_model/Data/" + "_".join([str(k) + '_' + str(v) for k, v in kwargs.items()]) + ".pkl"
+    # if the path already exists, we don't save
+    if not os.path.exists(path_name):
+        # Create the directory and file if it doesn't exist
+        os.makedirs(os.path.dirname(path_name), exist_ok=True)
+        with open(path_name, 'wb') as f:
+            pickle.dump(object, f)
+    else:
+        print(f"File {path_name} already exists. Not overwriting.")
 
-def plot_parameter_distribution(stats: dict, param_name: str, index: int = 0):
-    """Plot the distribution of a parameter's values across generations."""
-    # Extract the parameter values from best individuals
-    param_values = [ind[param_name]['value'] for ind in stats['best_individuals']]
-    
-    plt.figure(figsize=(10, 6))
-    plt.plot(stats['generations'], param_values, 'bo-')
-    
-    plt.title(f'Evolution of {param_name} Parameter')
-    plt.xlabel('Generation')
-    plt.ylabel('Parameter Value')
-    plt.grid(True)
-    plt.savefig(f'plots/{param_name}_distribution_{index}.png')
-    plt.close()
+def load_pickle_file(**kwargs) -> 'EnhancedPrepareData':
+    """Load the object from a pickle file."""
+    path_name = "ai_model/Data/" + "_".join([str(k) + '_' + str(v) for k, v in kwargs.items()]) + ".pkl"
+    # if the path already exists, we load
+    if os.path.exists(path_name):
+        with open(path_name, 'rb') as f:
+            return pickle.load(f)
 
-def plot_parallel_coordinates(stats: dict, param_names: list, index: int = 0):
-    """Create a parallel coordinates plot for multiple parameters."""
-    # Prepare data
-    data = []
-    for i, gen in enumerate(stats['generations']):
-        entry = {'Generation': gen, 'Fitness': stats['best_fitness'][i]}
-        for param in param_names:
-            entry[param] = stats['best_individuals'][i][param]['value']
-        data.append(entry)
+def load_checkpoint(checkpoint_path: str) -> tuple:
+    """Load a saved checkpoint and return the optimization state."""
+    with open(checkpoint_path, 'rb') as f:
+        checkpoint = pickle.load(f)
     
-    df = pd.DataFrame(data)
+    # Restore random states
+    random.setstate(checkpoint['random_state'])
+    np.random.set_state(checkpoint['numpy_random_state'])
+
+    print(f"Checkpoint keys: {checkpoint.keys()}")
     
-    plt.figure(figsize=(12, 8))
-    parallel_coordinates(df, 'Generation', color=('r', 'g', 'b'))
-    plt.title('Parameter Values Across Generations')
-    plt.xticks(rotation=10)
-    plt.grid(True)
-    plt.savefig(f'plots/parallel_coordinates_{index}.png')
-    plt.close()
+    return (
+        checkpoint['generation'],
+        checkpoint['population'],
+        checkpoint['config_hyperparameters'],
+        checkpoint['optimizer_params'],
+        checkpoint['stats'],
+    )

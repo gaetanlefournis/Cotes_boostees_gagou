@@ -3,13 +3,12 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from ai_model.mlflow.mlflow import MLFlow
+from ai_model.mlflow_perso.mlflow_perso import MLFlow
 from ai_model.models.custom_loss import ProfitAwareLoss
 
 
@@ -35,7 +34,8 @@ class Trainer:
         patience: int = 20,
         coefficient_ce_loss: float = 0.25,
         coefficient_profit_loss: float = 0.25,
-        coefficient_small_preds_loss: float = 0.5,
+        number_loss: int = 1,
+        type_profit_loss: int = 1,
         **kwargs,
     ):
         self.model = model
@@ -48,7 +48,8 @@ class Trainer:
         self.patience = patience
         self.coefficient_ce_loss = coefficient_ce_loss
         self.coefficient_profit_loss = coefficient_profit_loss
-        self.coefficient_small_preds_loss = coefficient_small_preds_loss
+        self.number_loss = number_loss
+        self.type_profit_loss = type_profit_loss
 
         # Send model to device
         self.model.to(self.device)
@@ -114,15 +115,17 @@ class Trainer:
 
         # Define the 2 loss functions
         self.loss_criterion = ProfitAwareLoss(
+            number_loss=self.number_loss,
+            type_profit_loss=self.type_profit_loss,
             coeff_ce_loss=self.coefficient_ce_loss,
             coeff_profit_loss=self.coefficient_profit_loss,
-            coeff_small_preds_loss=self.coefficient_small_preds_loss,
             weights=self.weights
         ).to(self.device)
         self.loss_criterion_validation = ProfitAwareLoss(
+            number_loss=self.number_loss,
+            type_profit_loss=self.type_profit_loss,
             coeff_ce_loss=self.coefficient_ce_loss,
             coeff_profit_loss=self.coefficient_profit_loss,
-            coeff_small_preds_loss=self.coefficient_small_preds_loss,
             weights=None  # No weights for validation loss
         ).to(self.device)
 
@@ -259,6 +262,7 @@ class Trainer:
             "patience": self.patience,
             "coefficient_ce_loss": self.coefficient_ce_loss,
             "coefficient_profit_loss": self.coefficient_profit_loss,
-            "coefficient_small_preds_loss": self.coefficient_small_preds_loss,
+            "number_loss": self.number_loss,
+            "type_profit_loss": self.type_profit_loss,
             "weights": self.weights.tolist() if self.weights is not None else None
         })

@@ -99,7 +99,12 @@ LIST_MODELS = {
 AMOUNT_BASE = 10
 
 # List of seeds used for reproducibility in experiments
-LIST_SEEDS = [45, 46, 47]
+LIST_SEEDS = [45]
+
+# Patterns to remove before processing
+PATTERNS_TO_REMOVE = ['la grosse cote boostée mt', 'la grosse cote boostée', 'la grosse cote boostee', 'la cote boostée de noël', 'cote boostée winatv', 'cote boostée mt', 'cote boostée rmc', 'cote boostée', 'cote boostee' 'spécial noël', 'lors du match', 'dans le match', 'de l\'étape', 'du tournoi', 'de la nuit', 'de cette nuit', 'de la course', 'mymatch']
+PATTERNS_MORE = ['plus de', 'au moins', 'ou plus']
+PATTERNS_LESS = ['moins de', 'au plus', 'ou moins']
 
 
 CONDITIONS_ON_SPORTS = {

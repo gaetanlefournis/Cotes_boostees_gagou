@@ -11,7 +11,7 @@ from sklearn.metrics import (accuracy_score, auc, confusion_matrix, f1_score,
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from ai_model.mlflow.mlflow import MLFlow
+from ai_model.mlflow_perso.mlflow_perso import MLFlow
 from ai_model.models.custom_loss import ProfitAwareLoss
 from utils.constants import AMOUNT_BASE
 
@@ -26,7 +26,8 @@ class Tester:
         test_batch_size: int,
         test_coefficient_ce_loss: float,
         test_coefficient_profit_loss: float,
-        test_coefficient_small_preds_loss: float,
+        test_number_loss: int,
+        test_type_profit_loss: int,
         test_visualization_best_worst: bool,
         **kwargs,
     ):
@@ -36,7 +37,8 @@ class Tester:
         self.test_batch_size = test_batch_size
         self.test_coefficient_ce_loss = test_coefficient_ce_loss
         self.test_coefficient_profit_loss = test_coefficient_profit_loss
-        self.test_coefficient_small_preds_loss = test_coefficient_small_preds_loss
+        self.test_number_loss = test_number_loss
+        self.test_type_profit_loss = test_type_profit_loss
         self.test_visualization_best_worst = test_visualization_best_worst
         self.model.to(self.device)
 
@@ -112,9 +114,10 @@ class Tester:
         
         self.model.eval()
         self.criterion_test = ProfitAwareLoss(
+            number_loss=self.test_number_loss,
+            type_profit_loss=self.test_type_profit_loss,
             coeff_ce_loss=self.test_coefficient_ce_loss,
             coeff_profit_loss=self.test_coefficient_profit_loss,
-            coeff_small_preds_loss=self.test_coefficient_small_preds_loss,
             weights=None
         ).to(self.device)
 
@@ -353,6 +356,7 @@ class Tester:
             "test_batch_size": self.test_batch_size,
             "test_coefficient_ce_loss": self.test_coefficient_ce_loss,
             "test_coefficient_profit_loss": self.test_coefficient_profit_loss,
-            "test_coefficient_small_preds_loss": self.test_coefficient_small_preds_loss,
+            "test_number_loss": self.test_number_loss,
+            "test_type_profit_loss": self.test_type_profit_loss,
             "test_visualization_best_worst": self.test_visualization_best_worst
         })

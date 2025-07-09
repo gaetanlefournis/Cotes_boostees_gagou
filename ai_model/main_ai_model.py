@@ -7,14 +7,15 @@ import pandas as pd
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 
-from ai_model.enhanced_prepare_data import EnhancedPrepareData
-from ai_model.mlflow.mlflow import MLFlow
+from ai_model.mlflow_perso.mlflow_perso import MLFlow
 from ai_model.models.tester import Tester
 from ai_model.models.trainer import Trainer
+from ai_model.prepare_data.prepare_data import EnhancedPrepareData
 from boosted_odds.database.main_database import Database
 from utils.constants import LIST_MODELS
 from utils.tools import load_config
-from utils.tools_ai_model import save_results
+from utils.tools_ai_model import (load_pickle_file, save_pickle_file,
+                                  save_results)
 
 LIST_WEBSITES = ["winamax", "PSEL", "betclic", "unibet"] # "winamax", "PSEL", "betclic", "unibet"
 
@@ -42,16 +43,14 @@ class MainTrainingAIModel():
         self.device = None
         self.config_number = None
         self.data = None
-        self.prepare_data_instance = None
 
         self.amount_won_model = 0
         self.list_amount_won = []
 
-        self._initialize_all()
-        self._retrieve_and_prepare_data(website)
+        self._initialize_all(website=website)
         
 
-    def _initialize_all(self) -> None:
+    def _initialize_all(self, website: str) -> None:
         """
         Initialize the training process.
         This includes setting up the database connection and MLflow tracking.
@@ -61,14 +60,7 @@ class MainTrainingAIModel():
         self.config_number = self.config['config_number']
         self.model_type = LIST_MODELS[self.config['AI_MODEL_CONFIGS']['config_' + str(self.config_number)]['model_name']]
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        
-    def _retrieve_and_prepare_data(self, website: str) -> None:
-        """
-        Retrieve data from the database for a specific website.
-        """
-        print(f"\nRetrieving and preparing data for {website}...")
         self.data = self.database.retrieve_all(table=website)
-        self.prepare_data_instance = EnhancedPrepareData(df=self.data, **self.config['PREPARE_DATA'])
 
     def _create_data_loader(
         self,
@@ -169,7 +161,7 @@ class MainTrainingAIModel():
 
         return train_loader, test_loader, val_loader
 
-    def run(self) -> tuple[list, float, float] | int:
+    def run(self, data_train: tuple[torch.Tensor], data_val: tuple[torch.Tensor], data_test: tuple[torch.Tensor], train_df: pd.DataFrame, val_df: pd.DataFrame, test_df: pd.DataFrame) -> tuple[list, float, float] | int:
         """
         Run the training process for the AI model.
         """
@@ -190,16 +182,9 @@ class MainTrainingAIModel():
             print("Existing run.")
             raise ValueError("run already exists")
 
-        # Prepare the data - now returns (X_train, y_train), (X_test, y_test) and (X_val, y_val)
-        (X_train, y_train), (X_test, y_test), (X_val, y_val) = self.prepare_data_instance()
-
-        # Print the shapes of the datasets
-        print(f"Training data shape: {X_train.shape}, {y_train.shape}")
-        print(f"Test data shape: {X_test.shape}, {y_test.shape}")
-        print(f"Validation data shape: {X_val.shape}, {y_val.shape}") if X_val is not None else print("No validation data")
-
-        # the dataframe untransformed will be important to calculate the amount won
-        train_df, test_df, val_df = self.prepare_data_instance.final_train_df, self.prepare_data_instance.final_test_df, self.prepare_data_instance.final_val_df
+        # Prepare the data - now returns (X_train, y_train), (X_val, y_val), (X_test, y_test)
+        X_train, y_train, X_val, y_val, X_test, y_test = data_train[0], data_train[1], data_val[0], data_val[1], data_test[0], data_test[1]
+        print("\n\nData preparation completed.")
 
         # count the number of targets equal to 0 and equal to 1 in y_train and y_test and weights the classes during training
         num_zeros_train = (y_train == 0).sum().item()
@@ -248,9 +233,6 @@ class MainTrainingAIModel():
             test_df=test_df,
             prefix="test"
         )
-
-        # Save some prepare data parameters to MLflow
-        self.prepare_data_instance.log_parameters(self.mlflow)
         
         # Save model
         if isinstance(trained_model, torch.nn.Module):
@@ -299,37 +281,64 @@ if __name__ == "__main__":
     config = load_config(args.config_path, args.env_path)
 
     # Create the lists of parameters
-    list_seeds = [40]
-    list_coefficients = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
-    save_str = "coeffs"
+    list_seeds = [40, 41, 42, 43, 44, 45]
+    list_models = [1, 2, 3, 4]
+    save_str = "final_test_4"
     dictionary = {}
 
     # Create a loop to train the models with different configurations
-    for coefficients in list_coefficients:
-        dictionary[tuple(coefficients)] = {}
+    for model in list_models:
+        dictionary[model] = {}
         for seed in list_seeds:
             try:
                 # Update the config with the current seed and model
                 config['PREPARE_DATA']['random_state'] = seed
-                config['TRAINING']['coefficient_ce_loss'] = coefficients[0]
-                config['TRAINING']['coefficient_profit_loss'] = coefficients[1]
-                config['TRAINING']['coefficient_small_preds_loss'] = coefficients[2]
-                config['TESTING']['test_coefficient_ce_loss'] = coefficients[0]
-                config['TESTING']['test_coefficient_profit_loss'] = coefficients[1]
-                config['TESTING']['test_coefficient_small_preds_loss'] = coefficients[2]
-                config['MLFLOW']['run_name'] = f"coeffs {coefficients}, Seed: {seed}"
+                config['config_number'] = model
+                config['MLFLOW']['run_name'] = f"model {model}, Seed: {seed}"
 
                 # Create an instance of MainTrainingAIModel
+                print("try to create an instance of MainTrainingAIModel")
                 main_training = MainTrainingAIModel(config=config)
+
+                # Prepare the data
+                prepare_data_instance = EnhancedPrepareData(df=main_training.data, **config['PREPARE_DATA'])
+
+                dictionary_file_name = {**config["PREPARE_DATA"]}
+
+                data_object = load_pickle_file(**dictionary_file_name)
+                if data_object is None:
+                    print(f"The Data file does not exist, running the preparation again.")
+                    # Prepare the data
+                    print("Preparing the data...")
+                    prepare_data_instance()
+                    # Save the prepared data to a pickle file
+                    save_pickle_file(prepare_data_instance, **dictionary_file_name)
+
+                    data_object = prepare_data_instance
+                else:
+                    print("Data file loaded")
+
+                X_train, y_train, X_val, y_val, X_test, y_test = data_object.X_train, data_object.y_train, data_object.X_val, data_object.y_val, data_object.X_test, data_object.y_test
+
+                print("number of features:", X_train.shape[1])
 
                 # Run training
                 try: 
-                    total_amount_list_model, total_amount_model, total_amount_naive_golden = main_training.run()
+                    total_amount_list_model, total_amount_model, total_amount_naive_golden = main_training.run(
+                        data_train=(X_train, y_train),
+                        data_val=(X_val, y_val),
+                        data_test=(X_test, y_test),
+                        train_df=data_object.final_train_df,
+                        val_df=data_object.final_val_df,
+                        test_df=data_object.final_test_df
+                    )
+
+                    data_object.log_parameters(mlflow=main_training.mlflow)
                 except ValueError:
                     continue
 
                 # Store the results in the dictionary
-                dictionary[tuple(coefficients)][seed] = {
+                dictionary[model][seed] = {
                     'total_amount_won': total_amount_model,
                     'total_amount_list': total_amount_list_model,
                     'total_amount_golden_naive': total_amount_naive_golden
@@ -353,4 +362,4 @@ if __name__ == "__main__":
     # python3 ai_model/main_ai_model.py --config_path config/config.yaml --env_path config/.env.gagou
     # python3 -m ai_model.main_ai_model --config_path config/config.yaml --env_path config/.env.gagou
 
-    # mlflow ui --backend-store-uri ./mlruns --host 127.0.0.1 --port 5002
+    # mlflow ui --backend-store-uri file:///home/gagou/Documents/Projet/Cotes_boostees_gagou/mlruns --host 0.0.0.0 --port 5002

@@ -9,7 +9,10 @@ from deap import base, creator, tools
 from tqdm import tqdm
 
 from ai_model.main_ai_model import MainTrainingAIModel
+from ai_model.prepare_data.prepare_data import EnhancedPrepareData
 from utils.constants import LIST_SEEDS
+from utils.tools_ai_model import (load_checkpoint, load_pickle_file,
+                                  save_pickle_file)
 
 
 class EvolutionaryOptimizer():
@@ -27,6 +30,9 @@ class EvolutionaryOptimizer():
         pc: float = 0.5,
         pm: float = 0.2,
         mutation_std_dev: float = 0.1,
+        patience: int = 10,
+        proper_initialize: bool = True,
+        perform_crossover: bool = True,
         **kwargs,
     ) -> None:
         self.config_hyperparameters = config_hyperparameters
@@ -35,6 +41,9 @@ class EvolutionaryOptimizer():
         self.pc = pc
         self.pm = pm
         self.mutation_std_dev = mutation_std_dev
+        self.patience = patience
+        self.proper_initialize = proper_initialize
+        self.perform_crossover = perform_crossover
         self.setup_toolbox()
 
     def setup_toolbox(self):
@@ -54,48 +63,49 @@ class EvolutionaryOptimizer():
         self.toolbox.register("evaluate", self.evaluate_individual)
         self.toolbox.register("clone", copy.deepcopy)
 
-    def generate_individual(self):
-        """Generate a random individual based on the hyperparameter configuration."""
+    def _assign_random_value(self, individual: dict, params: dict) -> dict:
+        """Assign a random value to a parameter in the individual."""
+        for param, values in params.items():
+            if values['type'] == 'choice':
+                individual[param] = {'value': random.choice(values['values']), 'type': 'choice', 'values': values['values']}
+            elif values['type'] == 'uniform':
+                individual[param] = {'value': random.uniform(values['low'], values['high']), 'type': 'uniform', 'low': values['low'], 'high': values['high']}
+            elif values['type'] == 'loguniform':
+                individual[param] = {'value': 10**random.uniform(np.log10(values['low']), np.log10(values['high'])), 'type': 'loguniform', 'low': values['low'], 'high': values['high']}
+            else:
+                raise ValueError(f"Unsupported parameter type: {values['type']} for parameter {param}")
+        return individual
+
+    def generate_individual(self, current_population: list[dict] = None) -> dict:
+        """Generate a random individual based on the hyperparameter configuration.
+        If 'proper_initialize' is True, it will ensure that the individual
+        is initialized with values that are different from the current population values, otherwise it will generate a random individual."""
         individual = creator.Individual()
         
         # Training parameters
-        if 'TRAINING_PARAMETERS' in self.config_hyperparameters.keys():
-            training_params = self.config_hyperparameters['TRAINING_PARAMETERS']
-            for param, values in training_params.items():
-                if values['type'] == 'choice':
-                    individual[param] = {'value': random.choice(values['values']), 'type': 'choice', 'values': values['values']}
-                elif values['type'] == 'uniform':
-                    individual[param] = {'value': random.uniform(values['low'], values['high']), 'type': 'uniform', 'low': values['low'], 'high': values['high']}
-                elif values['type'] == 'loguniform':
-                    individual[param] = {'value': 10**random.uniform(np.log10(values['low']), np.log10(values['high'])), 'type': 'loguniform', 'low': values['low'], 'high': values['high']}
-
-        # Model parameters
-        if 'MODEL_PARAMETERS' in self.config_hyperparameters.keys():
-            model_params = self.config_hyperparameters['MODEL_PARAMETERS']
-            for param, values in model_params.items():
-                if values['type'] == 'choice':
-                    individual[param] = {'value': random.choice(values['values']), 'type': 'choice', 'values': values['values']}
-                elif values['type'] == 'uniform':
-                    individual[param] = {'value': random.uniform(values['low'], values['high']), 'type': 'uniform', 'low': values['low'], 'high': values['high']}
-                elif values['type'] == 'loguniform':
-                    individual[param] = {'value': 10**random.uniform(np.log10(values['low']), np.log10(values['high'])), 'type': 'loguniform', 'low': values['low'], 'high': values['high']}
-
-        # Data parameters
-        if 'DATA_PARAMETERS' in self.config_hyperparameters.keys():
-            data_params = self.config_hyperparameters['DATA_PARAMETERS']
-            for param, values in data_params.items():
-                if values['type'] == 'choice':
-                    individual[param] = {'value': random.choice(values['values']), 'type': 'choice', 'values': values['values']}
-                elif values['type'] == 'uniform':
-                    individual[param] = {'value': random.uniform(values['low'], values['high']), 'type': 'uniform', 'low': values['low'], 'high': values['high']}
-                elif values['type'] == 'loguniform':
-                    individual[param] = {'value': 10**random.uniform(np.log10(values['low']), np.log10(values['high'])), 'type': 'loguniform', 'low': values['low'], 'high': values['high']}
+        for param_group in ['TRAINING_PARAMETERS', 'MODEL_PARAMETERS', 'DATA_PARAMETERS']:
+            if param_group in self.config_hyperparameters:
+                params = self.config_hyperparameters[param_group]
+                if self.proper_initialize and current_population:
+                    # Ensure the new individual has different values from the current population
+                    existing_values_choice = [ind[param]['value'] for ind in current_population for param in params if ind[param]['type'] in ['choice']]
+                    existing_values_uniform = [(ind[param]['value'] - 0.1 * (ind[param]['high'] - ind[param]['low']), ind[param]['value'] + 0.1 * (ind[param]['high'] - ind[param]['low'])) for ind in current_population for param in params if ind[param]['type'] in ['uniform']]
+                    existing_values_loguniform = [(10**(ind[param]['value'] - 0.1 * (np.log10(ind[param]['high']) - np.log10(ind[param]['low']))), 10**(ind[param]['value'] + 0.1 * (np.log10(ind[param]['high']) - np.log10(ind[param]['low'])))) for ind in current_population for param in params if ind[param]['type'] in ['loguniform']]
+                    individual = self._assign_random_value(individual, params)
+                    
+                    # If the assigned value already exists, reassign until it's unique
+                    while any(individual[param]['value'] in existing_values_choice for param in params if individual[param]['type'] == 'choice') and any(existing[0] <= individual[param]['value'] <= existing[1] for existing in existing_values_uniform for param in params if individual[param]['type'] == 'uniform') and any(existing[0] <= individual[param]['value'] <= existing[1] for existing in existing_values_loguniform for param in params if individual[param]['type'] == 'loguniform'):
+                        individual = self._assign_random_value(individual, params)
+                else:
+                    # Assign random values without checking for uniqueness
+                    individual = self._assign_random_value(individual, params)
 
         # Ensure the output is DEAP-compatible
         if not isinstance(individual, dict):
             raise TypeError("Individual must be a dict")
-        print("Generated individual keys:", individual.keys())  # Debug output
-        print(f"Generated individual: {individual}")
+        print(f"Generated individual: ")
+        for k, v in individual.items():
+            print(f"{k}: {v['value']}")
         return individual
     
     def generate_population(self) -> list[dict]:
@@ -175,13 +185,41 @@ class EvolutionaryOptimizer():
         for seed in list_seeds:
             config['PREPARE_DATA']['random_state'] = seed
             config['MLFLOW']['run_name'] = f"Run - Gen number {gen_number} - indiv number {indiv_number} with seed {seed}"
+            config['MLFLOW']['experiment_name'] = f"Evolutionary Algorithm - Gen {gen_number}"
 
             # Create an instance of MainTrainingAIModel with the updated config
             main_training = MainTrainingAIModel(config=config)
 
+            # Prepare the data
+            prepare_data_instance = EnhancedPrepareData(df=main_training.data, **config['PREPARE_DATA'])
+
+            dictionary_file_name = {**config["PREPARE_DATA"]}
+
+            data_object = load_pickle_file(**dictionary_file_name)
+            if data_object is None:
+                print(f"The Data file does not exist, running the preparation again.")
+                # Prepare the data
+                print("Preparing the data...")
+                prepare_data_instance()
+                # Save the prepared data to a pickle file
+                save_pickle_file(prepare_data_instance, **dictionary_file_name)
+
+                data_object = prepare_data_instance
+            else:
+                print("Data file loaded")
+
+            # Get the training, validation, and test sets
+            X_train, y_train, X_val, y_val, X_test, y_test = data_object.X_train, data_object.y_train, data_object.X_val, data_object.y_val, data_object.X_test, data_object.y_test
+
             # Run the training and get the total amount won
             try:
-                _, total_amount_model, _ = main_training.run()
+                _, total_amount_model, _ = main_training.run((X_train, y_train), (X_val, y_val), (X_test, y_test),
+                                                             train_df=data_object.final_train_df, 
+                                                             val_df=data_object.final_val_df, 
+                                                             test_df=data_object.final_test_df)
+                
+                # Log parameters
+                data_object.log_parameters(mlflow=main_training.mlflow)
             except ValueError:
                 continue
             finally:
@@ -197,8 +235,7 @@ class EvolutionaryOptimizer():
         # Return the fitness value as a tuple
         return (fitness_value,)
 
-    def main(self, base_config: dict, target_fitness: float = 1000, 
-            checkpoint_interval: int = 1, checkpoint_path: str = None) -> tuple[dict, dict]:
+    def main(self, base_config: dict, target_fitness: float = 1000, checkpoint_path: str = None) -> tuple[dict, dict]:
         """
         Run the evolutionary algorithm with checkpointing support.
         
@@ -206,18 +243,8 @@ class EvolutionaryOptimizer():
             checkpoint_interval: Save a checkpoint every N generations
             checkpoint_path: Path to a checkpoint file to resume from
         """
-        # Initialize tracking variables
-        stats = {
-            'population': [],
-            'generations': [],
-            'best_fitness': [],
-            'avg_fitness': [],
-            'worst_fitness': [],
-            'best_individuals': []
-        }
         
         # Early stopping variables
-        patience = 8
         min_delta = 50
         no_improvement_generations = 0
         prev_best_fitness = -np.inf
@@ -226,10 +253,18 @@ class EvolutionaryOptimizer():
         start_gen = 1
         if checkpoint_path and os.path.exists(checkpoint_path):
             print(f"\nLoading checkpoint from {checkpoint_path}")
-            start_gen, population, loaded_stats = self.load_checkpoint(checkpoint_path)
-            
+            start_gen, population, config_hyperparameters, optimizer_params = load_checkpoint(checkpoint_path)
+            self.config_hyperparameters = config_hyperparameters
+            self.population_size = optimizer_params['population_size']
+            self.generations = optimizer_params['generations']
+            self.pc = optimizer_params['pc']
+            self.pm = optimizer_params['pm']
+            self.mutation_std_dev = optimizer_params['mutation_std_dev']
+            self.perform_crossover = optimizer_params['perform_crossover']
+            self.patience = optimizer_params['patience']
+            self.setup_toolbox()  # Reinitialize toolbox with updated parameters
+
             # Merge loaded stats with our fresh stats object
-            stats.update(loaded_stats)
             print(f"Resuming from generation {start_gen}")
         else:
             # Initialize fresh population
@@ -246,6 +281,8 @@ class EvolutionaryOptimizer():
         
         # Main evolutionary loop
         for gen in tqdm(range(start_gen, self.generations + 1)):
+            # Initialize tracking variables
+            stats = {}
             print(f"\n--- Generation {gen} ---")
             
             # Elitism
@@ -254,34 +291,48 @@ class EvolutionaryOptimizer():
             elites = self.toolbox.selection_elite(population, elite_count)
             
             # Selection and variation
-            non_elites = [ind for ind in population if ind not in elites]
-            num_parents_needed = 6
-            parents = self.toolbox.selection(non_elites, num_parents_needed)
+            num_parents_needed = self.population_size // 2
+            parents = self.toolbox.selection(population, num_parents_needed)
             print(f"selected {len(parents)} parents for generation {gen}")
             
             offspring = []
-            num_offspring = 10
+            num_offspring = int(self.population_size * 1.5)
 
-            while len(offspring) < num_offspring and len(parents) >= 2:
-                # Select two different parents randomly
-                parent1, parent2 = random.sample(parents, 2)
-                
-                # Clone parents before crossover to avoid modifying originals
-                child1, child2 = self.toolbox.clone(parent1), self.toolbox.clone(parent2)
-                
-                # Apply crossover
-                self.toolbox.crossover(child1, child2)
-                
-                # Add to offspring
-                offspring.extend([child1, child2])
+            if self.perform_crossover:
+                while len(offspring) < num_offspring and len(parents) >= 2:
+                    # Select two different parents randomly
+                    parent1, parent2 = random.sample(parents, 2)
+                    
+                    # Clone parents before crossover to avoid modifying originals
+                    child1, child2 = self.toolbox.clone(parent1), self.toolbox.clone(parent2)
 
-            # Trim if we got more than needed
-            offspring = offspring[:num_offspring]
+                    # Apply crossover
+                    self.toolbox.crossover(child1, child2)
+                
+                    # Add to offspring
+                    offspring.extend([child1, child2])
 
-            # Mutation
-            for mutant in offspring:
-                self.toolbox.mutation(mutant)
-            
+                # Trim if we got more than needed
+                offspring = offspring[:num_offspring]
+
+                # Mutation
+                for mutant in offspring:
+                    self.toolbox.mutation(mutant)
+            else:
+                # Mutation until we have enough offspring
+                while len(offspring) < num_offspring and len(parents) > 0:
+                    # generate lambda / mu offspring per parent
+                    offspring_per_parent = num_offspring // len(parents)
+                    for parent in parents:
+                        for _ in range(offspring_per_parent):
+                            mutant = self.toolbox.clone(parent)
+                            self.toolbox.mutation(mutant)
+                            offspring.append(mutant)
+
+                    # choose random offsprings if there are too many
+                    if len(offspring) > num_offspring:
+                        offspring = random.sample(offspring, num_offspring)
+
             # Evaluate offspring
             for (i, ind) in enumerate(offspring):
                 value_fitness = self.evaluate_individual(ind, copy.deepcopy(base_config), indiv_number=i, gen_number=gen)
@@ -289,21 +340,24 @@ class EvolutionaryOptimizer():
                     continue
                 else:
                     ind.fitness.values = value_fitness
-                    
+
+            # Perform offspring selection
+            offspring = self.toolbox.selection(offspring, self.population_size)
+
             # Combine populations
             population = elites + offspring
 
             # Ensure population size is maintained
-            assert len(population) == elite_count + 10, "Population size mismatch"
+            assert len(population) == elite_count + self.population_size, "Population size mismatch"
             
             # Update statistics
             fitnesses = [ind.fitness.values[0] for ind in population]
-            stats['generations'].append(gen)
-            stats['best_fitness'].append(max(fitnesses))
-            stats['avg_fitness'].append(sum(fitnesses)/len(fitnesses))
-            stats['worst_fitness'].append(min(fitnesses))
-            stats['best_individuals'].append(tools.selBest(population, 1)[0])
-            stats['population'].append(population)
+            stats['generations'] = gen
+            stats['best_fitness'] = max(fitnesses)
+            stats['avg_fitness'] = sum(fitnesses)/len(fitnesses)
+            stats['worst_fitness'] = min(fitnesses)
+            stats['best_individuals'] = tools.selBest(population, 1)[0]
+            stats['population'] = population
             
             # Save checkpoint
             self.save_checkpoint(gen, population, stats)
@@ -321,20 +375,12 @@ class EvolutionaryOptimizer():
             if best_fitness >= target_fitness:
                 print(f"Target fitness {target_fitness} reached at generation {gen}. Stopping early.")
                 break
-            if no_improvement_generations >= patience:
-                print(f"No improvement for {patience} generations. Stopping early.")
+            if no_improvement_generations >= self.patience:
+                print(f"No improvement for {self.patience} generations. Stopping early.")
                 break
-        
-        best_individual = tools.selBest(population, 1)[0]
-        print("\nBest Individual:")
-        for k, v in best_individual.items():
-            print(f"{k}: {v['value']}")
-        print(f"Fitness: {best_individual.fitness.values[0]:.4f}")
-        
-        return best_individual, stats
     
 
-    def save_checkpoint(self, generation: int, population: list, stats: dict, checkpoint_dir: str = "checkpoints_2") -> str:
+    def save_checkpoint(self, generation: int, population: list, stats: dict, checkpoint_dir: str = "checkpoints_1") -> str:
         """Save the current state of the optimization to a checkpoint file."""
         os.makedirs(checkpoint_dir, exist_ok=True)
         
@@ -351,7 +397,9 @@ class EvolutionaryOptimizer():
                 'generations': self.generations,
                 'pc': self.pc,
                 'pm': self.pm,
-                'mutation_std_dev': self.mutation_std_dev
+                'mutation_std_dev': self.mutation_std_dev,
+                'patience': self.patience,
+                'perform_crossover': self.perform_crossover
             }
         }
         
@@ -360,19 +408,4 @@ class EvolutionaryOptimizer():
             pickle.dump(checkpoint, f)
         
         return filename
-
-    def load_checkpoint(self, checkpoint_path: str) -> tuple:
-        """Load a saved checkpoint and return the optimization state."""
-        with open(checkpoint_path, 'rb') as f:
-            checkpoint = pickle.load(f)
-        
-        # Restore random states
-        random.setstate(checkpoint['random_state'])
-        np.random.set_state(checkpoint['numpy_random_state'])
-        
-        return (
-            checkpoint['generation'],
-            checkpoint['population'],
-            checkpoint['stats']
-        )
     

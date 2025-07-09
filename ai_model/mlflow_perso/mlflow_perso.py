@@ -8,7 +8,7 @@ This module provides a simple interface to interact with MLFlow for :
 from typing import Union
 
 import mlflow
-from mlflow.tracking import MlflowClient
+from mlflow import MlflowClient
 
 
 class MLFlow():

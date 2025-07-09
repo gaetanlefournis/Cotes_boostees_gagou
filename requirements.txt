@@ -10,4 +10,11 @@ python-telegram-bot
 psutil
 setuptools
 deap
-category_encoders
+category-encoders
+nltk
+spacy
+stop-words
+transformers
+mlflow
+sentencepiece
+torch

@@ -12,3 +12,6 @@ google-chrome-stable*
 mlruns/
 mlartifacts/
 final_model.pt
+ai_model/Data
+plots/
+checkpoints*/

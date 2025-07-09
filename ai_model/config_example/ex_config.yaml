@@ -67,13 +67,11 @@ TRAINING:
   patience: 15
   coefficient_ce_loss: 0.33
   coefficient_profit_loss: 0.33
-  coefficient_small_preds_loss: 0.33
 
 TESTING:
   test_batch_size: 64
   test_coefficient_ce_loss: 0.33
   test_coefficient_profit_loss: 0.33
-  test_coefficient_small_preds_loss: 0.33
   test_visualization_best_worst: False # Choose between "True" or "False"
 
 config_number: 3 # Choose between 1, 2, 3 or 4
