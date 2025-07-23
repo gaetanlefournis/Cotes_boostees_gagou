@@ -283,7 +283,7 @@ if __name__ == "__main__":
     # Create the lists of parameters
     list_seeds = [40, 41, 42, 43, 44, 45]
     list_models = [1, 2, 3, 4]
-    save_str = "final_test_4"
+    save_str = "final_test_11"
     dictionary = {}
 
     # Create a loop to train the models with different configurations

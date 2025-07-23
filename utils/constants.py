@@ -99,7 +99,7 @@ LIST_MODELS = {
 AMOUNT_BASE = 10
 
 # List of seeds used for reproducibility in experiments
-LIST_SEEDS = [45]
+LIST_SEEDS = [40, 41, 42, 43, 44, 45]
 
 # Patterns to remove before processing
 PATTERNS_TO_REMOVE = ['la grosse cote boostée mt', 'la grosse cote boostée', 'la grosse cote boostee', 'la cote boostée de noël', 'cote boostée winatv', 'cote boostée mt', 'cote boostée rmc', 'cote boostée', 'cote boostee' 'spécial noël', 'lors du match', 'dans le match', 'de l\'étape', 'du tournoi', 'de la nuit', 'de cette nuit', 'de la course', 'mymatch']
@@ -115,14 +115,15 @@ CONDITIONS_ON_SPORTS = {
            "Football": [2.8, 21],
            "Basketball": [2.5, 12],
            "Tennis": [3.7, 22],
-           "Badminton": [5.9, 12],
-           "Baseball": [3.7, 20],
+           "Badminton": [4.1, 12],
+           "Baseball": [2.4, 13],
            "Biathlon": [5.4, 14],
            "Football américain": [4.9, 16],
            "Formule 1": [4.5, 13],
            "Handball": [3.2, 17],
            "Hockey sur glace": [2.7, 14],
            "Rugby à XIII": [2.6, 13],
+           "Tennis de table": [4.2, 8],
            "Volley-ball": [3.5, 11],
             },
         "gold" : 
@@ -139,7 +140,7 @@ CONDITIONS_ON_SPORTS = {
         "silver" : 
             {
            "Football": [2.4, 19],
-           "Tennis": [2.5, 15],
+           "Tennis": [2.6, 16],
            "Rugby à XIII": [3.4, 17],
             },
         "gold" : 

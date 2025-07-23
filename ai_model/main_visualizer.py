@@ -20,7 +20,7 @@ def main_visualizer():
         'best_individuals': []
     }
 
-    LIST_FILE = ['checkpoints/checkpoint_gen_1.pkl', 'checkpoints/checkpoint_gen_2.pkl', 'checkpoints/checkpoint_gen_3.pkl', 'checkpoints/checkpoint_gen_3.pkl', 'checkpoints/checkpoint_gen_4.pkl', 'checkpoints/checkpoint_gen_5.pkl', 'checkpoints/checkpoint_gen_6.pkl', 'checkpoints/checkpoint_gen_7.pkl', 'checkpoints_1/checkpoint_gen_8.pkl', 'checkpoints_1/checkpoint_gen_9.pkl', 'checkpoints_1/checkpoint_gen_10.pkl', 'checkpoints_1/checkpoint_gen_11.pkl', 'checkpoints_1/checkpoint_gen_12.pkl', 'checkpoints_1/checkpoint_gen_13.pkl', 'checkpoints_1/checkpoint_gen_14.pkl', 'checkpoints_1/checkpoint_gen_15.pkl', 'checkpoints_1/checkpoint_gen_16.pkl', 'checkpoints_1/checkpoint_gen_17.pkl', 'checkpoints_1/checkpoint_gen_18.pkl', 'checkpoints_1/checkpoint_gen_19.pkl', 'checkpoints_1/checkpoint_gen_20.pkl']
+    LIST_FILE = ['checkpoints_1/checkpoint_gen_1.pkl', 'checkpoints_1/checkpoint_gen_2.pkl', 'checkpoints_1/checkpoint_gen_3.pkl', 'checkpoints_1/checkpoint_gen_4.pkl', 'checkpoints_1/checkpoint_gen_5.pkl', 'checkpoints_1/checkpoint_gen_6.pkl', 'checkpoints_1/checkpoint_gen_7.pkl', 'checkpoints_1/checkpoint_gen_8.pkl', 'checkpoints_1/checkpoint_gen_9.pkl', 'checkpoints_1/checkpoint_gen_10.pkl', 'checkpoints_1/checkpoint_gen_11.pkl', 'checkpoints_1/checkpoint_gen_12.pkl', 'checkpoints_1/checkpoint_gen_13.pkl', 'checkpoints_1/checkpoint_gen_14.pkl', 'checkpoints_1/checkpoint_gen_15.pkl', 'checkpoints_1/checkpoint_gen_16.pkl', 'checkpoints_1/checkpoint_gen_17.pkl', 'checkpoints_1/checkpoint_gen_18.pkl', 'checkpoints_1/checkpoint_gen_19.pkl', 'checkpoints_1/checkpoint_gen_20.pkl']
     for file in LIST_FILE:
         if file.endswith(".pkl"):
             # Load the checkpoint
@@ -44,7 +44,9 @@ def main_visualizer():
                 final_stats['best_individuals'].append(stats['best_individuals'])
                 final_stats['population'].append(stats['population'])
 
-    print("best individual:", final_stats['best_individuals'][-1])
+    print("all individuals:")
+    for ind in final_stats['population'][-1]:
+        print(ind)
     print("with fitness:", final_stats['best_fitness'][-1])
 
     return final_stats
@@ -67,7 +69,12 @@ if __name__ == "__main__":
 
     stats = main_visualizer()
     # Create an instance of EvolutionaryVisualizer
-    visualizer = EvolutionaryVisualizer(stats, config_hyperparameters, output_dir="evolution_plots_test")
+    visualizer = EvolutionaryVisualizer(stats, config_hyperparameters, output_dir="evolution_plots_test_2")
     
     # Plot the results
     visualizer.generate_all_plots()
+
+# python3 ai_model/main_visualizer.py --hyperparameters_path config/hyperparameters_range.yaml
+# python3 -m ai_model.main_visualizer --hyperparameters_path config/hyperparameters_range.yaml
+
+# mlflow ui --backend-store-uri file:///home/gagou/Documents/Projet/Cotes_boostees_gagou/mlruns --host 0.0.0.0 --port 5002

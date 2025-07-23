@@ -61,6 +61,7 @@ if __name__ == "__main__":
             config['PREPARE_DATA']['random_state'] = seed
             print(f"Running with seed: {seed}")
             config['MLFLOW']['run_name'] = f"Finding target fitness with seed {seed}"
+            config['MLFLOW']['experiment_name'] = f"Finding target fitness for index {index}"
             main_training_ai_model = MainTrainingAIModel(config)
 
             # Prepare the data
@@ -105,7 +106,6 @@ if __name__ == "__main__":
         print(f"Target fitness for early stopping: {target_fitness:.2f}")
 
         # Run the evolutionary optimization process
-        # In your main script, modify the evolutionary_optimizer.main() call:
         evolutionary_optimizer.main(
             base_config=config,
             target_fitness=target_fitness,

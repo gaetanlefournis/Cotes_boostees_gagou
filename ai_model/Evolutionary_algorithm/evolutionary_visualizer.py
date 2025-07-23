@@ -86,16 +86,11 @@ class EvolutionaryVisualizer:
         plt.figure(figsize=(12, 6))
         
         generations = self.stats['generations']
+        print(self.stats['best_fitness'])
         best_fitness = np.array(self.stats['best_fitness'])
         avg_fitness = np.array(self.stats['avg_fitness'])
         worst_fitness = np.array(self.stats['worst_fitness'])
         
-        # Handle negative fitness values if they exist
-        if np.any(best_fitness <= 0):
-            offset = -np.min(best_fitness) + 1
-            best_fitness += offset
-            avg_fitness += offset
-            worst_fitness += offset
         
         plt.plot(generations, best_fitness, 'o-', label='Best Fitness', linewidth=2)
         plt.plot(generations, avg_fitness, 's-', label='Average Fitness', linewidth=2)

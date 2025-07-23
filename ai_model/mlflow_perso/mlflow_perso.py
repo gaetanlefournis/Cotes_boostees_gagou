@@ -68,10 +68,9 @@ class MLFlow():
         """
         if self._run_already_exists():
             self.already_exists = True
-            print("Using existing run.")
             return
 
-        print("🚀 No existing run found. Starting a run now...")
+        print(f"🚀 No existing run found. Starting a run now with name '{self.run_name}'...")
         self.run = mlflow.start_run(run_name=self.run_name)
         self.run_id = self.run.info.run_id
         print(f"🚀 Started MLflow run with ID: {self.run_id}")

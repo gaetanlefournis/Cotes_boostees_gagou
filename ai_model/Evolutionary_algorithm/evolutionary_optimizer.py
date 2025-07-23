@@ -380,7 +380,7 @@ class EvolutionaryOptimizer():
                 break
     
 
-    def save_checkpoint(self, generation: int, population: list, stats: dict, checkpoint_dir: str = "checkpoints_1") -> str:
+    def save_checkpoint(self, generation: int, population: list, stats: dict, checkpoint_dir: str = "checkpoints_2") -> str:
         """Save the current state of the optimization to a checkpoint file."""
         os.makedirs(checkpoint_dir, exist_ok=True)
         

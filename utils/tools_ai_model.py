@@ -116,8 +116,6 @@ def load_checkpoint(checkpoint_path: str) -> tuple:
     # Restore random states
     random.setstate(checkpoint['random_state'])
     np.random.set_state(checkpoint['numpy_random_state'])
-
-    print(f"Checkpoint keys: {checkpoint.keys()}")
     
     return (
         checkpoint['generation'],
