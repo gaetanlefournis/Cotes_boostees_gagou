@@ -16,3 +16,4 @@ ai_model/Data
 plots/
 checkpoints*/
 ai_model/
+utils/tools_ai_model.py
