@@ -6,6 +6,7 @@ import random
 import time
 
 import undetected_chromedriver as uc
+from webdriver_manager.chrome import ChromeDriverManager
 
 from boosted_odds.bettor.bettor_psel import BettorPSEL
 from boosted_odds.bettor.bettor_winamax import BettorWinamax
@@ -71,6 +72,7 @@ class MainBoostedOdds():
         options.add_argument("--start-maximized")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--remote-debugging-port=9222")
+        options.add_argument(f"--executable_path={ChromeDriverManager().install()}")
 
         # Anti-detection improvements
         options.add_argument("--disable-blink-features=AutomationControlled")  # Prevent bot detection
@@ -184,24 +186,7 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-
-    max_retries = 10
-    retry_delay = 5
-    attempts = 0
-
-    while attempts < max_retries:
-        try:
-            automate = MainBoostedOdds(args.config_path, args.env_path)
-            automate.run()
-            break
-        except Exception as e:
-            attempts += 1
-            print(f"Attempt {attempts} failed: {e}")
-            if attempts < max_retries:
-                print(f"Retrying in {retry_delay} seconds...")
-                time.sleep(retry_delay)
-            else:
-                print("Max retries reached. Exiting.")
-                raise 
+    automate = MainBoostedOdds(args.config_path, args.env_path)
+    automate.run()
 
     # python3 boosted_odds/main_code.py --config_path config/config.yaml --env_path config/.env.gagou 
