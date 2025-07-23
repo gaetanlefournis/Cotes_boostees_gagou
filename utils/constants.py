@@ -1,6 +1,3 @@
-from ai_model.models.model import (AttentionNN, DeepResNet, LogisticRegression,
-                                   SimpleNN)
-
 # Description: Constants used in the project
 
 # URL of the retrieving website
@@ -87,24 +84,8 @@ SPORTS_LOGO = {
     "🚴‍♂️": "Cyclisme",
 }
 
-# List the different possible AI models to use
-LIST_MODELS = {
-    'logistic_regression': LogisticRegression,
-    'deep_resnet': DeepResNet,
-    'attention_nn': AttentionNN,
-    'simple_nn': SimpleNN,
-}
-
 # Base amount for calculating profit/loss in euros
 AMOUNT_BASE = 10
-
-# List of seeds used for reproducibility in experiments
-LIST_SEEDS = [40, 41, 42, 43, 44, 45]
-
-# Patterns to remove before processing
-PATTERNS_TO_REMOVE = ['la grosse cote boostée mt', 'la grosse cote boostée', 'la grosse cote boostee', 'la cote boostée de noël', 'cote boostée winatv', 'cote boostée mt', 'cote boostée rmc', 'cote boostée', 'cote boostee' 'spécial noël', 'lors du match', 'dans le match', 'de l\'étape', 'du tournoi', 'de la nuit', 'de cette nuit', 'de la course', 'mymatch']
-PATTERNS_MORE = ['plus de', 'au moins', 'ou plus']
-PATTERNS_LESS = ['moins de', 'au plus', 'ou moins']
 
 
 CONDITIONS_ON_SPORTS = {
