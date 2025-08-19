@@ -114,6 +114,9 @@ class RetrieverPSEL(AbstractRetriever):
             dict[str, str, str, str, str, bool]: infos of the boosted odd
         """
         text = boosted_odd.text.split("\n")
+        print(text)
+        print(type(text))
+        print(len(text))
         if len(text) == 6:
             title, heure, sub_title, odd = (
                 text[2] + " " + text[0],
@@ -121,18 +124,20 @@ class RetrieverPSEL(AbstractRetriever):
                 text[3] + " " + text[4],
                 text[5],
             )
+        # case done (sport = text[0])
         elif len(text) == 7:
             title, heure, sub_title, odd = (
-                text[2] + " " + text[0],
-                text[1],
+                text[3] + " " + text[1],
+                text[2],
                 text[4] + " " + text[5],
                 text[6],
             )
+        # case done (sport = text[0] now)
         elif len(text) == 9:
             title, heure, sub_title, odd = (
-                text[2] + text[3] + text[4] + " " + text[0],
-                text[1],
-                text[5] + " " + text[7],
+                text[3] + text[4] + text[5] + " " + text[1],
+                text[2],
+                text[6] + " " + text[7],
                 text[8],
             )
         elif len(text) == 10:
@@ -160,7 +165,7 @@ class RetrieverPSEL(AbstractRetriever):
         sport = boosted_odd.find_element(
             By.XPATH, ".//a//div[1]//span//span[1]"
         ).get_attribute("class")
-        
+        print(sport)
         
         classes_sport = sport.split(" ")
         for class_sport in classes_sport:
@@ -188,7 +193,7 @@ class RetrieverPSEL(AbstractRetriever):
         date = date.replace(hour=heure.hour, minute=heure.minute)
 
         proba_diff = 1 / old_odd - 1 / odd
-        if proba_diff > 0.11:
+        if proba_diff > 0.11 and odd < 4:
             golden = "gold"
         else:
             golden = "silver"
