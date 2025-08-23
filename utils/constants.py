@@ -113,6 +113,7 @@ CONDITIONS_ON_SPORTS = {
            "Basketball": [4.9, 24],
            "Tennis": [3.2, 24],
            "Formule 1": [2.7, 24],
+           "MMA": [5.9, 24],
            "Rugby à XV": [5.9, 24],
             }
         },
