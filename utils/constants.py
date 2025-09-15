@@ -101,9 +101,9 @@ CONDITIONS_ON_SPORTS = {
            "Biathlon": [5.4, 14],
            "Football américain": [4.9, 16],
            "Formule 1": [4.5, 13],
-           "Handball": [3.2, 17],
+           "Handball": [3.1, 15],
            "Hockey sur glace": [2.7, 14],
-           "Rugby à XIII": [2.6, 13],
+           "Rugby à XIII": [2.4, 13],
            "Tennis de table": [4.2, 8],
            "Volley-ball": [3.5, 11],
             },
@@ -121,7 +121,7 @@ CONDITIONS_ON_SPORTS = {
         {
         "silver" : 
             {
-           "Football": [2.4, 19],
+           "Football": [2.6, 19],
            "Tennis": [2.6, 16],
            "Rugby à XIII": [3.4, 17],
             },
