@@ -161,7 +161,7 @@ class AnalyzeDataDB1():
             plt.title(f"Evolution of the amount of money won for {sport}, threshold: {small_dico['threshold']}, percentage: {small_dico['percentage']}, golden: {self.metal}")
             plt.xlabel("Number of bets")
             plt.ylabel("Amount of money won")
-            save_fig(fig, f"/home/gagou/Documents/Projet/Cotes_boostees_gagou/results/{self.db_table}/{self.metal}/{sport}_{small_dico['threshold']}.png")
+            save_fig(fig, f"/home/gagou/Documents/Projets/Paris_sportifs/Cotes_boostees_gagou/results/{self.db_table}/{self.metal}/{sport}_{small_dico['threshold']}.png")
             plt.close()
 
     def update_conditions(self):
@@ -174,7 +174,7 @@ class AnalyzeDataDB1():
         :param new_values: A list containing the new values [threshold, percentage]
         """
         # Read the current constants file
-        with open("/home/gagou/Documents/Projet/Cotes_boostees_gagou/utils/constants.py", 'r') as file:
+        with open("/home/gagou/Documents/Projets/Paris_sportifs/Cotes_boostees_gagou/utils/constants.py", 'r') as file:
             content = file.readlines()
 
         # Find the start of the CONDITIONS_ON_SPORTS dictionary
@@ -204,7 +204,7 @@ class AnalyzeDataDB1():
                 break
 
         # Write the updated content back to the constants file
-        with open("/home/gagou/Documents/Projet/Cotes_boostees_gagou/utils/constants.py", 'w') as file:
+        with open("/home/gagou/Documents/Projets/Paris_sportifs/Cotes_boostees_gagou/utils/constants.py", 'w') as file:
             file.writelines(content)
 
         print(f"Update successfull in {self.db_table} for {self.metal}.")
@@ -212,11 +212,11 @@ class AnalyzeDataDB1():
 
     def clear_folder(self):
         """ Clear the folder containing the plots before saving the new ones if the folder already exists"""
-        if os.path.exists(f"/home/gagou/Documents/Projet/Cotes_boostees_gagou/results/{self.db_table}/{self.metal}/"):
-            shutil.rmtree(f"/home/gagou/Documents/Projet/Cotes_boostees_gagou/results/{self.db_table}/{self.metal}/")
+        if os.path.exists(f"/home/gagou/Documents/Projets/Paris_sportifs/Cotes_boostees_gagou/results/{self.db_table}/{self.metal}/"):
+            shutil.rmtree(f"/home/gagou/Documents/Projets/Paris_sportifs/Cotes_boostees_gagou/results/{self.db_table}/{self.metal}/")
         else:
-            os.makedirs(f"/home/gagou/Documents/Projet/Cotes_boostees_gagou/results/{self.db_table}/{self.metal}/")
-               
+            os.makedirs(f"/home/gagou/Documents/Projets/Paris_sportifs/Cotes_boostees_gagou/results/{self.db_table}/{self.metal}/")
+
     def close_engine(self):
         """ Close the engine """
         self.engine.dispose()
