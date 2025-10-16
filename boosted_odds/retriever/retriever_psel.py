@@ -132,6 +132,14 @@ class RetrieverPSEL(AbstractRetriever):
                 text[4] + " " + text[5],
                 text[6],
             )
+        # case done (sport = text[0])
+        elif len(text) == 8:
+            title, heure, sub_title, odd = (
+                text[3] + " " + text[1],
+                text[2],
+                text[5] + " " + text[6],
+                text[7],
+            )
         # case done (sport = text[0] now)
         elif len(text) == 9:
             title, heure, sub_title, odd = (
