@@ -148,11 +148,12 @@ class RetrieverPSEL(AbstractRetriever):
                 text[6] + " " + text[7],
                 text[8],
             )
+        # case done ('canal + foot in text[3]')
         elif len(text) == 10:
             title, heure, sub_title, odd = (
-                text[3] + text[4] + text[5] + " " + text[1],
+                text[3] + text[4] + text[5] + text[6] + " " + text[1],
                 text[2],
-                text[6] + " " + text[8],
+                text[7] + " " + text[8],
                 text[9],
             )
         elif len(text) == 11:

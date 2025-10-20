@@ -189,4 +189,5 @@ if __name__ == "__main__":
     automate = MainBoostedOdds(args.config_path, args.env_path)
     automate.run()
 
-    # python3 boosted_odds/main_code.py --config_path config/config.yaml --env_path config/.env.gagou 
+    # python3 boosted_odds/main_code.py --config_path config/config_gagou.yaml --env_path config/.env.gagou 
+    # python3 -m boosted_odds.main_code --config_path config/config_gagou.yaml --env_path config/.env.gagou
